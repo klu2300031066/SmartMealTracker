@@ -559,6 +559,130 @@
                 display: none;
             }
         }
+
+        /* ── Allergy Manager ── */
+        .allergy-add-row {
+            display: flex;
+            gap: 0.65rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .allergy-add-row input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0.6rem;
+            padding: 0.6rem 0.9rem;
+            color: #f1f5f9;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .allergy-add-row input::placeholder {
+            color: #334155;
+        }
+
+        .allergy-add-row input:focus {
+            border-color: #f87171;
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+        }
+
+        .btn-add-allergy {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.6rem;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-add-allergy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .allergy-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .allergy-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 999px;
+            padding: 0.35rem 0.85rem 0.35rem 0.7rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #fca5a5;
+            animation: slideIn 0.25s ease both;
+        }
+
+        .btn-del-allergy {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 900;
+            transition: background 0.2s, transform 0.15s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .btn-del-allergy:hover {
+            background: rgba(239, 68, 68, 0.5);
+            transform: scale(1.15);
+        }
+
+        .allergy-empty {
+            text-align: center;
+            padding: 1.25rem 0 0.5rem;
+            color: #475569;
+            font-size: 0.85rem;
+        }
+
+        .allergy-empty span {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .allergy-info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 0.7rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.8rem;
+            color: #fca5a5;
+            margin-bottom: 1.25rem;
+            line-height: 1.55;
+        }
     </style>
 </head>
 
@@ -610,9 +734,19 @@
 
             <span class="sidebar-section-label">Account</span>
 
-            <button class="sidebar-link" id="nav-profile" onclick="showPanel('profile', this)">
+            {% if request.user.is_staff %}
+            <a href="{% url 'manager_dashboard' %}" class="sidebar-link" id="nav-manager">
+                <span class="icon">🏥</span>
+                <span>Manager Panel</span>
+            </a>
+            {% endif %}
+
+                        <button class="sidebar-link" id="nav-profile" onclick="showPanel('profile', this)">
+
                 <span class="icon">👤</span>
-                <span>Profile</span>
+
+                <span>My Profile</span>
+
             </button>
 
             <button class="sidebar-link" id="nav-settings" onclick="showPanel('settings', this)">
@@ -716,19 +850,111 @@
                 </div>
             </div>
 
-            <!-- ══ Panel: Profile ══ -->
+            <!-- ══ Panel: My Profile ══ -->
             <div class="content-panel" id="panel-profile">
                 <div class="page-header">
-                    <h1>👤 Profile</h1>
-                    <p>Your account information.</p>
+                    <h1>👤 My Profile</h1>
+                    <p>Your medical information and allergy flags set by your care manager.</p>
                 </div>
-                <div class="card">
-                    <div class="coming-soon">
-                        <span class="cs-icon">👤</span>
-                        <h3>{{ request.user.username }}</h3>
-                        <p>Profile editing coming soon!</p>
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="msg-banner {{ message.tags }}" style="max-width:700px;">
+                    {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}🚫{% else %}⚠️{% endif %}
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <!-- Medical Stats row -->
+                <div
+                    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;max-width:700px;margin-bottom:1.5rem;">
+
+                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;">
+                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">⚖️</div>
+                        <div style="font-size:1.7rem;font-weight:800;color:#a78bfa;line-height:1;">
+                            {% if profile.weight_kg %}{{ profile.weight_kg }} <span
+                                style="font-size:0.85rem;font-weight:500;color:#64748b;">kg</span>{% else %}<span
+                                style="color:#334155;font-size:1rem;">—</span>{% endif %}
+                        </div>
+                        <div
+                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
+                            Weight</div>
                     </div>
+
+                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;">
+                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">📏</div>
+                        <div style="font-size:1.7rem;font-weight:800;color:#60a5fa;line-height:1;">
+                            {% if profile.height_cm %}{{ profile.height_cm }} <span
+                                style="font-size:0.85rem;font-weight:500;color:#64748b;">cm</span>{% else %}<span
+                                style="color:#334155;font-size:1rem;">—</span>{% endif %}
+                        </div>
+                        <div
+                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
+                            Height</div>
+                    </div>
+
+                    {% if profile.weight_kg and profile.height_cm %}
+                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;" id="bmi-card">
+                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">🧮</div>
+                        <div style="font-size:1.7rem;font-weight:800;line-height:1;" id="profile-bmi-val" data-w="{{ profile.weight_kg }}" data-h="{{ profile.height_cm }}">—</div>
+                        <div
+                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
+                            BMI</div>
+                        <div style="font-size:0.75rem;font-weight:600;margin-top:0.25rem;" id="profile-bmi-cat"></div>
+                    </div>
+                    {% endif %}
+
                 </div>
+
+                <!-- Medical Notes -->
+                {% if profile.medical_notes %}
+                <div class="card" style="max-width:700px;margin-bottom:1.5rem;">
+                    <h2 style="color:#fcd34d;">📋 Medical Notes</h2>
+                    <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;">{{
+                        profile.medical_notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Allergy Flags (read-only) -->
+                <div class="card" style="max-width:700px;">
+                    <h2 style="color:#fca5a5;">⚠️ My Allergy Flags</h2>
+
+                    <div class="allergy-info-banner" style="margin-bottom:1.25rem;">
+                        <span style="font-size:1.1rem;flex-shrink:0;">🔴</span>
+                        <span>These allergies have been flagged by your care manager. You will receive a
+                            <strong>Medical Alert</strong> whenever you try to log a food matching any of these
+                            keywords.
+                            Contact your manager to update this list.
+                        </span>
+                    </div>
+
+                    {% if allergies %}
+                    <div class="allergy-tags" id="allergy-tags-list">
+                        {% for allergy in allergies %}
+                        <span class="allergy-tag">
+                            🚨 {{ allergy.keyword|capfirst }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="allergy-empty">
+                        <span>✅</span>
+                        No allergy flags set by your manager yet.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Manager info note (only if no data at all) -->
+                {% if not profile.weight_kg and not profile.height_cm and not profile.medical_notes and not allergies %}
+                <div
+                    style="max-width:700px;margin-top:1rem;padding:1.25rem 1.4rem;background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.25);border-radius:0.9rem;font-size:0.85rem;color:#64748b;display:flex;gap:0.75rem;align-items:flex-start;">
+                    <span style="font-size:1.2rem;">ℹ️</span>
+                    <span>Your profile hasn't been filled in yet. Your care manager will update your medical stats and
+                        allergy flags when your assessment is complete.</span>
+                </div>
+                {% endif %}
+
             </div>
 
             <!-- ══ Panel: Settings ══ -->
@@ -750,6 +976,26 @@
     </div>
 
     <script>
+        // Auto-calculate BMI from manager-set stats
+        document.addEventListener('DOMContentLoaded', function() {
+            var valEl = document.getElementById('profile-bmi-val');
+            var catEl = document.getElementById('profile-bmi-cat');
+            if (!valEl || !catEl) return;
+            var w = parseFloat(valEl.getAttribute('data-w'));
+            var h = parseFloat(valEl.getAttribute('data-h'));
+            if (!w || !h || h <= 0) return;
+            var bmi = w / Math.pow(h / 100, 2);
+            var cat = '', color = '#60a5fa';
+            if (bmi < 18.5)      { cat = '🔵 Underweight'; color = '#60a5fa'; }
+            else if (bmi < 25)   { cat = '✅ Normal';       color = '#6ee7b7'; }
+            else if (bmi < 30)   { cat = '🟡 Overweight';  color = '#fcd34d'; }
+            else                 { cat = '🔴 Obese';        color = '#f87171'; }
+            valEl.textContent = bmi.toFixed(1);
+            valEl.style.color = color;
+            catEl.textContent = cat;
+            catEl.style.color = color;
+        });
+
         function showPanel(name, clickedBtn) {
             document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));

@@ -13,4 +13,9 @@ urlpatterns = [
     path('login/',                                  views.login_view,             name='login'),
     path('logout/',                                 views.logout_view,            name='logout'),
     path('delete/<int:meal_id>/',                   views.delete_meal,            name='delete_meal'),
+    path('allergies/add/',                           views.manage_allergies,       name='manage_allergies'),
+    path('allergies/delete/<int:allergy_id>/',       views.delete_allergy,         name='delete_allergy'),
+    # ── Manager routes ────────────────────────────────────────────────────────
+    path('manager/',                                views.manager_dashboard,         name='manager_dashboard'),
+    path('manager/resident/<int:user_id>/',         views.edit_resident_profile,     name='edit_resident_profile'),
 ]

@@ -1,14 +1,15 @@
 import re
 import json
 import requests as http_requests
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils import timezone
-from .models import Meal, InventoryItem, DailyMeal
+from .models import Meal, InventoryItem, DailyMeal, UserProfile, UserAllergy
 from datetime import timedelta
 
 # ── Edamam credentials ────────────────────────────────────────────────────────
@@ -54,6 +55,28 @@ def _call_edamam(food_name: str):
         return None, 'timeout'
     except http_requests.exceptions.RequestException:
         return None, 'error'
+
+
+def _check_allergies_by_keyword(user, food_name: str) -> list:
+    """
+    Keyword-based allergy safety check.
+    Fetches the user's allergy keywords from the DB and tests whether
+    any keyword appears (case-insensitive, substring) in the food name.
+    Returns a list of matched keyword strings (human-readable).
+    """
+    triggered = []
+    try:
+        profile = user.profile
+    except UserProfile.DoesNotExist:
+        return triggered
+
+    keywords = profile.get_allergy_keywords()   # e.g. ['peanut', 'milk']
+    food_lower = food_name.lower()
+    for kw in keywords:
+        if kw.lower() in food_lower:
+            triggered.append(kw.capitalize())
+    return triggered
+
 
 
 def _get_health_suggestion(total_calories: int) -> dict:
@@ -191,11 +214,49 @@ def dashboard(request):
 
     meals          = Meal.objects.filter(user=request.user).order_by('-id')
     total_calories = sum(m.calories for m in meals)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    allergies   = profile.allergies.all()
     context = {
         'meals':          meals,
         'total_calories': total_calories,
+        'allergies':      allergies,
+        'profile':        profile,
     }
     return render(request, 'tracker/dashboard.html', context)
+
+
+# ── Allergy Management ──────────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def manage_allergies(request):
+    """Add a new allergy keyword for the logged-in user."""
+    if request.method == 'POST':
+        keyword = request.POST.get('keyword', '').strip().lower()
+        if not keyword:
+            messages.error(request, 'Please enter an allergy keyword.')
+        elif len(keyword) > 100:
+            messages.error(request, 'Keyword is too long (max 100 characters).')
+        else:
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            _, created = UserAllergy.objects.get_or_create(profile=profile, keyword=keyword)
+            if created:
+                messages.success(request, f'"⚠️ {keyword.capitalize()}" added to your allergy list!')
+            else:
+                messages.warning(request, f'"{keyword.capitalize()}" is already in your allergy list.')
+    return redirect('dashboard')
+
+
+@login_required(login_url='login')
+def delete_allergy(request, allergy_id):
+    """Remove an allergy keyword entry."""
+    try:
+        allergy = UserAllergy.objects.get(id=allergy_id, profile__user=request.user)
+        name    = allergy.keyword.capitalize()
+        allergy.delete()
+        messages.success(request, f'"✅ {name}" removed from your allergy list.')
+    except UserAllergy.DoesNotExist:
+        pass
+    return redirect('dashboard')
 
 
 # ── Track Meals ───────────────────────────────────────────────────────────────
@@ -243,15 +304,34 @@ def track_meals(request):
 
             cal, err = _resolve_calories(request, meal_input, manual_cal_str, category)
             if cal is not None:
+                # ── Allergy Safety Check (keyword match) ──────────────────────
+                # Checks food name against user's custom allergy keywords.
+                # Works instantly — no API call needed.
+                triggered_allergies = _check_allergies_by_keyword(request.user, meal_input)
+                allergy_warning     = bool(triggered_allergies)
+
                 draft = request.session.get(skey, [])
                 draft.append({
-                    'name':     meal_input,
-                    'calories': cal,
-                    'category': category,
+                    'name':            meal_input,
+                    'calories':        cal,
+                    'category':        category,
+                    'allergy_warning': allergy_warning,
+                    'triggered':       triggered_allergies,
                 })
                 request.session[skey] = draft
                 request.session.modified = True
-                messages.success(request, f'"{meal_input}" added — click Save Day to store it.')
+
+                if allergy_warning:
+                    # ── High-priority Medical Alert ───────────────────────────
+                    # Manager-set allergies always produce this red warning.
+                    messages.error(
+                        request,
+                        f'⚠️ Medical Alert: A manager has flagged this item as unsafe '
+                        f'for your profile ({", ".join(triggered_allergies)} detected). '
+                        f'Adding to draft — please consult your care manager.'
+                    )
+                else:
+                    messages.success(request, f'"{meal_input}" added — click Save Day to store it.')
 
         elif action == 'remove_draft':
             idx = int(request.POST.get('draft_index', -1))
@@ -394,6 +474,100 @@ def delete_tracked_meal(request, meal_id):
     return redirect(f"/track-meals/?date={date}")
 
 
+# ── Manager Dashboard ─────────────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def manager_dashboard(request):
+    """Only accessible by staff (is_staff=True) — lists all non-staff residents."""
+    if not request.user.is_staff:
+        messages.error(request, '🚫 Access denied. Manager access only.')
+        return redirect('dashboard')
+
+    residents = (
+        User.objects
+        .filter(is_staff=False, is_superuser=False)
+        .select_related('profile')
+        .order_by('username')
+    )
+    # Ensure every resident has a profile
+    for r in residents:
+        UserProfile.objects.get_or_create(user=r)
+
+    context = {'residents': residents}
+    return render(request, 'tracker/manager_dashboard.html', context)
+
+
+# ── Edit Resident Profile (Manager only) ──────────────────────────────────────
+
+@login_required(login_url='login')
+def edit_resident_profile(request, user_id):
+    """Manager edits a specific resident's medical profile and allergy keywords."""
+    if not request.user.is_staff:
+        messages.error(request, '🚫 Access denied. Manager access only.')
+        return redirect('dashboard')
+
+    resident = get_object_or_404(User, id=user_id, is_staff=False)
+    profile, _ = UserProfile.objects.get_or_create(user=resident)
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'save_profile')
+
+        if action == 'save_profile':
+            # Weight
+            weight_str = request.POST.get('weight_kg', '').strip()
+            height_str = request.POST.get('height_cm', '').strip()
+            notes      = request.POST.get('medical_notes', '').strip()
+
+            try:
+                profile.weight_kg = float(weight_str) if weight_str else None
+            except ValueError:
+                messages.error(request, 'Invalid weight value.')
+                return redirect('edit_resident_profile', user_id=user_id)
+
+            try:
+                profile.height_cm = float(height_str) if height_str else None
+            except ValueError:
+                messages.error(request, 'Invalid height value.')
+                return redirect('edit_resident_profile', user_id=user_id)
+
+            profile.medical_notes = notes
+            profile.save()
+            messages.success(request, f"✅ Medical profile for {resident.username} updated successfully!")
+
+        elif action == 'add_allergy':
+            keyword = request.POST.get('keyword', '').strip().lower()
+            if not keyword:
+                messages.error(request, 'Please enter an allergy keyword.')
+            elif len(keyword) > 100:
+                messages.error(request, 'Keyword too long (max 100 characters).')
+            else:
+                _, created = UserAllergy.objects.get_or_create(profile=profile, keyword=keyword)
+                if created:
+                    messages.success(request, f'⚠️ Allergy "{keyword.capitalize()}" flagged for {resident.username}.')
+                else:
+                    messages.warning(request, f'"{keyword.capitalize()}" is already flagged.')
+
+        elif action == 'delete_allergy':
+            allergy_id = request.POST.get('allergy_id')
+            try:
+                allergy = UserAllergy.objects.get(id=allergy_id, profile=profile)
+                name = allergy.keyword.capitalize()
+                allergy.delete()
+                messages.success(request, f'✅ Allergy "{name}" removed for {resident.username}.')
+            except UserAllergy.DoesNotExist:
+                pass
+
+        return redirect('edit_resident_profile', user_id=user_id)
+
+    allergies = profile.allergies.all()
+    context = {
+        'resident': resident,
+        'profile':  profile,
+        'allergies': allergies,
+    }
+    return render(request, 'tracker/edit_resident.html', context)
+
+
 # ── Sign Up ───────────────────────────────────────────────────────────────────
 
 def signup_view(request):
@@ -415,14 +589,15 @@ def signup_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('manager_dashboard' if request.user.is_staff else 'dashboard')
 
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('dashboard')
+            # Staff → Manager Dashboard, residents → regular Dashboard
+            return redirect('manager_dashboard' if user.is_staff else 'dashboard')
     else:
         form = AuthenticationForm()
     return render(request, 'tracker/login.html', {'form': form})

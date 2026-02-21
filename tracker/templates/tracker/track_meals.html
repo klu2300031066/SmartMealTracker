@@ -1022,6 +1022,72 @@
             background: rgba(251, 191, 36, 0.12) !important;
         }
 
+        /* ── Allergy Warning ── */
+        .allergy-alert {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 0.55rem;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #fca5a5;
+            margin-top: 0.4rem;
+            animation: slideIn 0.3s ease both;
+        }
+
+        .allergy-alert .alert-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .allergy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 999px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #f87171;
+            letter-spacing: 0.03em;
+        }
+
+        /* Pulse dot for allergy indicator on item row */
+        .allergy-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse-dot {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 7px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .allergy-item {
+            border-color: rgba(239, 68, 68, 0.35) !important;
+            background: rgba(239, 68, 68, 0.07) !important;
+        }
+
         .saved-item {
             border-color: rgba(52, 211, 153, 0.2) !important;
             background: rgba(52, 211, 153, 0.04) !important;
@@ -1282,18 +1348,32 @@
                 <div class="meals-group-label draft-label">📝 Draft (unsaved)</div>
                 <ul class="food-list">
                     {% for item in sec.draft_meals %}
-                    <li class="food-item draft-item">
-                        <div class="food-item-info">
-                            <span class="food-item-name">{{ item.name }}</span>
-                            <span class="food-item-cal draft-cal">{{ item.calories }} kcal</span>
+                    <li style="display:flex;flex-direction:column;gap:0;">
+                        <div class="food-item draft-item{% if item.allergy_warning %} allergy-item{% endif %}">
+                            <div class="food-item-info">
+                                {% if item.allergy_warning %}
+                                <span class="allergy-dot" title="Allergy risk"></span>
+                                {% endif %}
+                                <span class="food-item-name">{{ item.name }}</span>
+                                <span class="food-item-cal draft-cal">{{ item.calories }} kcal</span>
+                            </div>
+                            <form method="POST" action="{% url 'track_meals' %}" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_draft">
+                                <input type="hidden" name="meal_date" value="{{ selected_date|date:'Y-m-d' }}">
+                                <input type="hidden" name="draft_index" value="{{ item.draft_index }}">
+                                <button type="submit" class="btn-remove btn-remove-draft" title="Remove">✕</button>
+                            </form>
                         </div>
-                        <form method="POST" action="{% url 'track_meals' %}" style="margin:0;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="remove_draft">
-                            <input type="hidden" name="meal_date" value="{{ selected_date|date:'Y-m-d' }}">
-                            <input type="hidden" name="draft_index" value="{{ item.draft_index }}">
-                            <button type="submit" class="btn-remove btn-remove-draft" title="Remove">✕</button>
-                        </form>
+                        {% if item.allergy_warning %}
+                        <div class="allergy-alert" id="allergy-alert-{{ forloop.counter }}">
+                            <span class="alert-icon">🚨</span>
+                            <span>⚠️ Allergy Warning: This item may not be safe for your profile!</span>
+                            {% for allergen in item.triggered %}
+                            <span class="allergy-badge">{{ allergen }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </li>
                     {% endfor %}
                 </ul>
