@@ -15,16 +15,17 @@ from django.utils import timezone
 from .models import Meal, InventoryItem, DailyMeal, UserProfile, UserAllergy, ManagerMessage
 from datetime import timedelta
 import google.generativeai as genai
+from .utils import render_to_pdf
 
 # Load environment variables from .env file
 load_dotenv()
 
 # ── Gemini AI credentials ─────────────────────────────────────────────────────
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 # ── Edamam credentials ────────────────────────────────────────────────────────
-EDAMAM_APP_ID  = '6d6bf9be'
-EDAMAM_APP_KEY = '852c746609088255d77a762c3cd29a7a'
+EDAMAM_APP_ID  = os.getenv('EDAMAM_APP_ID', '')
+EDAMAM_APP_KEY = os.getenv('EDAMAM_APP_KEY', '')
 EDAMAM_URL     = 'https://api.edamam.com/api/nutrition-data'
 
 
@@ -242,35 +243,36 @@ def dashboard(request):
 # ── Allergy Management ──────────────────────────────────────────────────────────────
 
 @login_required(login_url='login')
+def health_hub(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    context = {
+        'profile': profile,
+    }
+    return render(request, 'tracker/health_hub.html', context)
+
+@login_required(login_url='login')
 def manage_allergies(request):
-    """Add a new allergy keyword for the logged-in user."""
+    """View-only profile for the logged-in user (Allergies, Height, Weight)."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Residents can no longer modify allergies directly via this view
     if request.method == 'POST':
-        keyword = request.POST.get('keyword', '').strip().lower()
-        if not keyword:
-            messages.error(request, 'Please enter an allergy keyword.')
-        elif len(keyword) > 100:
-            messages.error(request, 'Keyword is too long (max 100 characters).')
-        else:
-            profile, _ = UserProfile.objects.get_or_create(user=request.user)
-            _, created = UserAllergy.objects.get_or_create(profile=profile, keyword=keyword)
-            if created:
-                messages.success(request, f'"⚠️ {keyword.capitalize()}" added to your allergy list!')
-            else:
-                messages.warning(request, f'"{keyword.capitalize()}" is already in your allergy list.')
-    return redirect('dashboard')
+        messages.error(request, '🛡️ Profile changes must be requested through your care manager.')
+        return redirect('manage_allergies')
+
+    allergies = profile.allergies.all()
+    context = {
+        'profile': profile,
+        'allergies': allergies,
+    }
+    return render(request, 'tracker/allergies.html', context)
 
 
 @login_required(login_url='login')
 def delete_allergy(request, allergy_id):
-    """Remove an allergy keyword entry."""
-    try:
-        allergy = UserAllergy.objects.get(id=allergy_id, profile__user=request.user)
-        name    = allergy.keyword.capitalize()
-        allergy.delete()
-        messages.success(request, f'"✅ {name}" removed from your allergy list.')
-    except UserAllergy.DoesNotExist:
-        pass
-    return redirect('dashboard')
+    """Entry point for deleting allergies — now disabled for residents."""
+    messages.error(request, '🛡️ Profile modifications must be handled by your care manager.')
+    return redirect('manage_allergies')
 
 
 # ── Track Meals ───────────────────────────────────────────────────────────────
@@ -507,7 +509,20 @@ def manager_dashboard(request):
     for r in residents:
         UserProfile.objects.get_or_create(user=r)
 
-    context = {'residents': residents}
+    # Calculate stats for the dashboard
+    residents_with_allergies_count = 0
+    completed_profiles_count = 0
+    for r in residents:
+        if r.profile.allergies.exists():
+            residents_with_allergies_count += 1
+        if r.profile.weight_kg and r.profile.height_cm:
+            completed_profiles_count += 1
+
+    context = {
+        'residents': residents,
+        'residents_with_allergies_count': residents_with_allergies_count,
+        'completed_profiles_count': completed_profiles_count,
+    }
     return render(request, 'tracker/manager_dashboard.html', context)
 
 
@@ -670,11 +685,63 @@ def patient_food_info(request):
     context = {
         'residents':         residents,
         'selected_resident': selected_resident,
+        'selected_resident_id': str(selected_resident.id) if selected_resident else None,
         'stats':             stats,
         'res_profile':       res_profile,
         'res_allergies':     res_allergies,
     }
     return render(request, 'tracker/patient_food_info.html', context)
+
+
+@login_required(login_url='login')
+def export_resident_pdf(request, resident_id):
+    """
+    Generates a PDF medical report. Managers can see any resident,
+    residents can only see their own.
+    """
+    # Security: Residents can only view themselves. Managers can view anyone.
+    if not request.user.is_staff and request.user.id != int(resident_id):
+        messages.error(request, '🚫 Access denied. You can only export your own report.')
+        return redirect('dashboard')
+
+
+    resident = get_object_or_404(User, id=resident_id, is_staff=False)
+    profile, _ = UserProfile.objects.get_or_create(user=resident)
+
+    # Data for the last 7 days
+    today = timezone.localdate()
+    seven_days_ago = today - timedelta(days=6)
+
+    meals = DailyMeal.objects.filter(
+        user=resident,
+        meal_date__range=[seven_days_ago, today]
+    ).order_by('-meal_date', 'category')
+
+    # Calculate average calories
+    daily_totals = meals.values('meal_date').annotate(day_total=Sum('calories'))
+    total_cal_sum = sum(d['day_total'] for d in daily_totals)
+    avg_calories = round(total_cal_sum / 7)
+
+    inventory = InventoryItem.objects.filter(user=resident)
+    allergies = profile.allergies.all()
+
+    context = {
+        'resident': resident,
+        'profile': profile,
+        'meals': meals,
+        'avg_calories': avg_calories,
+        'inventory': inventory,
+        'allergies': allergies,
+        'today': today,
+    }
+
+    response = render_to_pdf('tracker/medical_report.html', context)
+    if response:
+        filename = f"Medical_Report_{resident.username}_{today.strftime('%Y-%m-%d')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    return HttpResponse("Error generating PDF", status=400)
+
 
 
 # ── Messaging: Manager → Resident ─────────────────────────────────────────────
@@ -1041,3 +1108,35 @@ def confirm_ai_meal(request):
         messages.warning(request, f'⚠️ {food} is now out of stock!')
 
     return redirect('track_meals')
+
+# ── Manager: User Inventory Search ───────────────────────────────────────────
+
+@login_required(login_url='login')
+def manager_inventory_search(request):
+    """Manager views a list of all residents to select one for inventory check."""
+    if not request.user.is_staff:
+        messages.error(request, '🚫 Access denied. Manager access only.')
+        return redirect('dashboard')
+
+    residents = User.objects.filter(is_staff=False, is_superuser=False).order_by('username')
+    return render(request, 'tracker/manager_inventory_search.html', {'residents': residents})
+
+
+# ── Manager: View Resident Inventory ──────────────────────────────────────────
+
+@login_required(login_url='login')
+def manager_view_resident_inventory(request, user_id):
+    """Manager views a specific resident's current inventory items."""
+    if not request.user.is_staff:
+        messages.error(request, '🚫 Access denied. Manager access only.')
+        return redirect('dashboard')
+
+    resident = get_object_or_404(User, id=user_id, is_staff=False)
+    # Get all inventory items for this specific resident
+    inventory_items = InventoryItem.objects.filter(user=resident).order_by('name')
+
+    context = {
+        'resident': resident,
+        'inventory_items': inventory_items,
+    }
+    return render(request, 'tracker/manager_resident_inventory.html', context)

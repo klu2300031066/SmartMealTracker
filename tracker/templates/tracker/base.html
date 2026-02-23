@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MyMeal{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Modern Design System */
+        :root {
+            --primary: #7c3aed;
+            --secondary: #3b82f6;
+            --accent: #a78bfa;
+            --bg: #0f0c29;
+            --surface: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+            --sidebar-width: 280px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Blobs */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(130px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 500px;
+            height: 500px;
+            background: rgba(124, 58, 237, 0.15);
+            top: -120px;
+            left: -80px;
+        }
+
+        body::after {
+            width: 450px;
+            height: 450px;
+            background: rgba(59, 130, 246, 0.12);
+            bottom: -100px;
+            right: -80px;
+        }
+
+        /* Topbar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background: rgba(10, 8, 35, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            -webkit-text-fill-color: initial;
+        }
+
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .username {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Layout */
+        .page-container {
+            flex: 1;
+            padding-top: 64px;
+            display: flex;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(10, 8, 35, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: calc(100vh - 64px);
+            position: fixed;
+            left: 0;
+            top: 64px;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            z-index: 90;
+            overflow-y: auto;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.25rem;
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 600;
+            border-radius: 1rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-link i {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid var(--border);
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #475569;
+            padding: 1.25rem 1.25rem 0.5rem;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 2.5rem 2rem;
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-height: calc(100vh - 64px);
+        }
+
+        .content-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Reusable Components */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .heading-xl {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtext {
+            color: var(--muted);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            :root {
+                --sidebar-width: 80px;
+            }
+
+            .sidebar-link span,
+            .sidebar-section-title {
+                display: none;
+            }
+
+            .sidebar-link {
+                justify-content: center;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <header class="topbar">
+        {% if request.user.is_staff %}
+        <a href="{% url 'manager_dashboard' %}" class="logo">
+            <div class="logo-icon">🏥</div>
+            MyMeal Care
+        </a>
+        {% else %}
+        <a href="{% url 'dashboard' %}" class="logo">
+            <div class="logo-icon">🥗</div>
+            MyMeal
+        </a>
+        {% endif %}
+        <div class="user-nav">
+            {% if request.user.is_staff %}
+            <span class="badge-count"
+                style="position: static; padding: 0.3rem 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);">🛡️
+                Manager</span>
+            {% endif %}
+            <span class="username">👤 {{ request.user.username }}</span>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </header>
+
+    <div class="page-container">
+        {% if request.user.is_authenticated %}
+        <aside class="sidebar">
+            {% if request.user.is_staff %}
+            <span class="sidebar-section-title">Care Management</span>
+            <a href="{% url 'manager_dashboard' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+                <i>🏥</i> <span>Resident List</span>
+            </a>
+            <a href="{% url 'patient_food_info' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'patient_food_info' %}active{% endif %}">
+                <i>📊</i> <span>Food Analytics</span>
+            </a>
+            <a href="{% url 'manager_inventory_search' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'manager_inventory_search' %}active{% endif %}">
+                <i>📦</i> <span>User Inventory</span>
+            </a>
+            <a href="{% url 'send_weekly_review' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'send_weekly_review' %}active{% endif %}">
+                <i>📨</i> <span>Send Review</span>
+            </a>
+
+            <span class="sidebar-section-title">System</span>
+            {% if request.user.is_superuser %}
+            <a href="/admin/" class="sidebar-link" target="_blank">
+                <i>⚙️</i> <span>Django Admin</span>
+            </a>
+            {% endif %}
+            {% else %}
+            <span class="sidebar-section-title">Navigation</span>
+            <a href="{% url 'dashboard' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i>🏠</i> <span>Dashboard</span>
+            </a>
+            <a href="{% url 'track_meals' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'track_meals' %}active{% endif %}">
+                <i>📊</i> <span>Track Meals</span>
+            </a>
+            <a href="{% url 'inventory' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
+                <i>📦</i> <span>Inventory</span>
+            </a>
+            <a href="{% url 'ai_meal_page' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'ai_meal_page' %}active{% endif %}">
+                <i>✨</i> <span>AI Personal Chef</span>
+            </a>
+
+            <span class="sidebar-section-title">Health & Safety</span>
+            <a href="{% url 'weekly_review_inbox' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'weekly_review_inbox' %}active{% endif %}">
+                <i>📬</i> <span>Weekly Reviews</span>
+            </a>
+            <a href="{% url 'health_hub' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'health_hub' %}active{% endif %}">
+                <i>🏥</i> <span>Health Hub</span>
+            </a>
+            <a href="{% url 'manage_allergies' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'manage_allergies' %}active{% endif %}">
+                <i>👤</i> <span>Profile</span>
+            </a>
+            {% endif %}
+        </aside>
+        {% endif %}
+
+        <main class="content">
+            <div class="content-inner">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

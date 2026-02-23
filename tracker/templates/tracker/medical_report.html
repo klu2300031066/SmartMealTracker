@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #eee;
+            font-size: 11px;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        .summary-box {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .summary-label {
+            font-weight: bold;
+            width: 150px;
+            display: inline-block;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>MyMeal Care: Clinical Nutrition Report</h1>
+        <p>Generated on {{ today|date:"d F Y" }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Patient Information</div>
+        <div class="summary-box">
+            <div class="summary-item"><span class="summary-label">Name:</span> {{ resident.username }}</div>
+            <div class="summary-item"><span class="summary-label">Email:</span> {{ resident.email|default:"N/A" }}</div>
+            <div class="summary-item"><span class="summary-label">Weight:</span> {{ profile.weight_kg|default:"—" }} kg
+            </div>
+            <div class="summary-item"><span class="summary-label">Height:</span> {{ profile.height_cm|default:"—" }} cm
+            </div>
+            {% if profile.medical_notes %}
+            <div class="summary-item"><span class="summary-label">Medical Notes:</span> {{ profile.medical_notes }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Nutritional History (Last 7 Days)</div>
+        <div class="summary-box">
+            <div class="summary-item"><span class="summary-label">7-Day Average Intake:</span> {{ avg_calories }} kcal
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Food Item</th>
+                    <th>Calories</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meal in meals %}
+                <tr>
+                    <td>{{ meal.meal_date|date:"d M Y" }}</td>
+                    <td>{{ meal.get_category_display }}</td>
+                    <td>{{ meal.name }}</td>
+                    <td>{{ meal.calories }} kcal</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align:center;">No meal history recorded for the last 7 days.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Allergy Profile</div>
+        <ul>
+            {% for allergy in allergies %}
+            <li>{{ allergy.keyword|title }}</li>
+            {% empty %}
+            <li>No known allergies recorded.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Current Inventory Holdings</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }} {{ item.unit }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" style="text-align:center;">No inventory items recorded.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Confidential Medical Document - MyMeal Care Nutrition System
+    </div>
+</body>
+
+</html>

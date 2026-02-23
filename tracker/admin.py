@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, UserAllergy
+from .models import UserProfile, UserAllergy, InventoryItem, DailyMeal, ManagerMessage
 
 
 class UserAllergyInline(admin.TabularInline):
@@ -18,7 +18,7 @@ class UserAllergyInline(admin.TabularInline):
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     inlines       = [UserAllergyInline]
-    list_display  = ('user', 'allergy_keywords_display')
+    list_display  = ('user', 'allergy_keywords_display', 'weight_kg', 'height_cm')
     search_fields = ('user__username',)
     readonly_fields = ('user',)
 
@@ -29,3 +29,24 @@ class UserProfileAdmin(admin.ModelAdmin):
         return ', '.join(k.capitalize() for k in keywords)
 
     allergy_keywords_display.short_description = 'Allergy Keywords'
+
+
+@admin.register(InventoryItem)
+class InventoryItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'quantity', 'unit', 'user', 'date_added')
+    list_filter = ('unit', 'user')
+    search_fields = ('name', 'user__username')
+
+
+@admin.register(DailyMeal)
+class DailyMealAdmin(admin.ModelAdmin):
+    list_display = ('name', 'calories', 'category', 'user', 'meal_date')
+    list_filter = ('category', 'meal_date', 'user')
+    search_fields = ('name', 'user__username')
+
+
+@admin.register(ManagerMessage)
+class ManagerMessageAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'sender', 'recipient', 'is_read', 'created_at')
+    list_filter = ('is_read', 'sender', 'recipient')
+    search_fields = ('subject', 'body')

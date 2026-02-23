@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 .vscode/
 .idea/
+
+# Gunicorn files
+gunicorn.ctl
+*.sock
+*.pid
+*.log

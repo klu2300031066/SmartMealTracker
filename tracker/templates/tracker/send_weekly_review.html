@@ -1,641 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'tracker/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Weekly Review – MyMeal Care</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+{% block title %}Send Weekly Review - MyMeal Care{% endblock %}
+
+{% block extra_css %}
+<style>
+    .layout-columns {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-send-msg {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+        color: #fff;
+        border: none;
+        border-radius: 1rem;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        transition: all 0.2s;
+    }
+
+    .btn-send-msg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(245, 158, 11, 0.5);
+    }
+
+    .sent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .sent-item {
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+    }
+
+    .sent-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .sent-to {
+        font-weight: 700;
+        color: var(--accent);
+    }
+
+    .sent-date {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    .sent-subject {
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .sent-body {
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+        .layout-columns {
+            grid-template-columns: 1fr;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            width: 550px;
-            height: 550px;
-            background: rgba(16, 185, 129, 0.09);
-            border-radius: 50%;
-            filter: blur(140px);
-            top: -140px;
-            left: -90px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.85);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .badge-manager {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(110, 231, 183, 0.3);
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #6ee7b7;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #6ee7b7;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            transform: translateY(-1px);
-        }
-
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-            border: none;
-            background: transparent;
-            width: 100%;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(110, 231, 183, 0.08);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.15));
-            color: #6ee7b7;
-            border: 1px solid rgba(110, 231, 183, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 5rem;
-            max-width: 1100px;
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #fbbf24, #f97316);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
-
-        .layout {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 1.75rem;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            padding: 1.75rem 2rem;
-            backdrop-filter: blur(14px);
-        }
-
-        .card h2 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 1.35rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.15rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.45rem;
-        }
-
-        .form-select,
-        .form-input,
-        .form-textarea {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            background: rgba(10, 8, 35, 0.55);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.65rem;
-            color: #e2e8f0;
-            font-family: inherit;
-            font-size: 0.9rem;
-            transition: border-color 0.2s;
-            appearance: none;
-        }
-
-        .form-select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.85rem center;
-            padding-right: 2.5rem;
-        }
-
-        .form-select option {
-            background: #1e1b4b;
-        }
-
-        .form-select:focus,
-        .form-input:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: rgba(251, 191, 36, 0.5);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 160px;
-            line-height: 1.6;
-        }
-
-        .char-count {
-            font-size: 0.72rem;
-            color: #475569;
-            text-align: right;
-            margin-top: 0.3rem;
-        }
-
-        .btn-send {
-            width: 100%;
-            padding: 0.8rem;
-            background: linear-gradient(90deg, #d97706, #ea580c);
-            border: none;
-            border-radius: 0.7rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
-        }
-
-        .btn-send:hover {
-            opacity: 0.88;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(217, 119, 6, 0.5);
-        }
-
-        /* Sent messages log */
-        .msg-log {
-            overflow-y: auto;
-            max-height: 520px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.9rem;
-        }
-
-        .sent-msg {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 0.85rem;
-            padding: 1rem 1.2rem;
-            transition: border-color 0.2s;
-        }
-
-        .sent-msg:hover {
-            border-color: rgba(251, 191, 36, 0.25);
-        }
-
-        .sent-msg-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-        }
-
-        .sent-msg-to {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #6ee7b7;
-        }
-
-        .sent-msg-date {
-            font-size: 0.7rem;
-            color: #475569;
-        }
-
-        .sent-msg-subject {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #e2e8f0;
-            margin-bottom: 0.35rem;
-        }
-
-        .sent-msg-body {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-        }
-
-        .read-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 999px;
-            font-size: 0.62rem;
-            font-weight: 700;
-        }
-
-        .read-badge.read {
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            color: #6ee7b7;
-        }
-
-        .read-badge.unread {
-            background: rgba(251, 191, 36, 0.12);
-            border: 1px solid rgba(251, 191, 36, 0.25);
-            color: #fbbf24;
-        }
-
-        .msg-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            animation: slideIn 0.35s ease both;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .empty-log {
-            text-align: center;
-            padding: 2.5rem 1rem;
-            color: #334155;
-        }
-
-        .empty-log .ei {
-            font-size: 2.5rem;
-            margin-bottom: 0.6rem;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 860px) {
-            .layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <header class="topbar">
-        <a href="{% url 'manager_dashboard' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🏥</div>
-            <span class="logo-text">MyMeal — Care</span>
-        </a>
-        <div class="topbar-right">
-            <span class="badge-manager">🛡️ Manager</span>
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">Log Out</a>
-        </div>
-    </header>
-
-    <div class="shell">
-        <aside class="sidebar" id="sidebar">
-            <span class="sidebar-section-label">Manager</span>
-            <a href="{% url 'manager_dashboard' %}" class="sidebar-link" id="nav-panel">
-                <span class="icon">🏥</span><span>Manager Panel</span>
-            </a>
-            <a href="{% url 'patient_food_info' %}" class="sidebar-link" id="nav-food">
-                <span class="icon">📊</span><span>Patient Food Info</span>
-            </a>
-            <a href="{% url 'send_weekly_review' %}" class="sidebar-link active" id="nav-review">
-                <span class="icon">📨</span><span>Send Weekly Review</span>
-            </a>
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link" id="sidebar-logout-btn">
-                    <span class="icon">🚪</span><span>Log Out</span>
-                </a>
-            </div>
-        </aside>
-
-        <main class="main">
-
-            <div class="page-header">
-                <h1>📨 Send Weekly Review</h1>
-                <p>Send a personalised message or weekly summary to any resident. They'll see it in their dashboard
-                    inbox.</p>
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">📨 Resident Outreach</h1>
+    <p class="subtext">Send personalized health reviews and dietary guidance.</p>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:1rem; margin-bottom:2rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:{% if message.tags == 'success' %}var(--success){% else %}var(--error){% endif %}; font-weight:600;">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="layout-columns">
+    <!-- Compose -->
+    <div class="card">
+        <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: #fff;">✍️ Compose Message</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Recipient Resident</label>
+                <select name="recipient" class="form-control" required>
+                    <option value="">— Choose a patient —</option>
+                    {% for r in residents %}
+                    <option value="{{ r.id }}" {% if r.id|slugify == preselect %}selected{% endif %}>
+                        {{ r.username|capfirst }} {% if r.email %}({{ r.email }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
-            {% if messages %}
-            {% for message in messages %}
-            <div class="msg-banner {{ message.tags }}">
-                {% if message.tags == 'success' %}✅{% else %}❌{% endif %} {{ message }}
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" class="form-control" placeholder="e.g. Weekly Health Review"
+                    value="Weekly Review" required>
             </div>
-            {% endfor %}
-            {% endif %}
 
-            <div class="layout">
-
-                <!-- Compose form -->
-                <div class="card">
-                    <h2 style="color:#fbbf24;">✍️ Compose Message</h2>
-                    <form method="POST" action="{% url 'send_weekly_review' %}" id="compose-form">
-                        {% csrf_token %}
-
-                        <div class="form-group">
-                            <label for="recipient">👤 Select Resident</label>
-                            <select name="recipient" id="recipient" class="form-select" required>
-                                <option value="">— Choose a patient —</option>
-                                {% for r in residents %}
-                                <option value="{{ r.id }}" {% if preselect == r.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ r.username }}{% if r.email %} ({{ r.email }}){% endif %}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="subject">📋 Subject</label>
-                            <input type="text" name="subject" id="subject" class="form-input"
-                                placeholder="e.g. Weekly Review — Feb 2026" maxlength="200" value="Weekly Review">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="body">💬 Message</label>
-                            <textarea name="body" id="body" class="form-textarea"
-                                placeholder="Write your message here... Include observations, dietary notes, encouragement, or health updates."
-                                maxlength="2000" required oninput="updateCount()"></textarea>
-                            <div class="char-count"><span id="char-count">0</span> / 2000</div>
-                        </div>
-
-                        <button type="submit" class="btn-send" id="btn-send">📨 Send to Resident</button>
-                    </form>
-                </div>
-
-                <!-- Sent messages log -->
-                <div class="card">
-                    <h2 style="color:#94a3b8;">📤 Sent Messages</h2>
-                    {% if sent_messages %}
-                    <div class="msg-log">
-                        {% for msg in sent_messages %}
-                        <div class="sent-msg">
-                            <div class="sent-msg-header">
-                                <span class="sent-msg-to">→ {{ msg.recipient.username }}</span>
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    {% if msg.is_read %}
-                                    <span class="read-badge read">✅ Read</span>
-                                    {% else %}
-                                    <span class="read-badge unread">🕐 Unread</span>
-                                    {% endif %}
-                                    <span class="sent-msg-date">{{ msg.created_at|date:"d M Y, H:i" }}</span>
-                                </div>
-                            </div>
-                            <div class="sent-msg-subject">{{ msg.subject }}</div>
-                            <div class="sent-msg-body">{{ msg.body }}</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-log">
-                        <div class="ei">📭</div>
-                        <p style="color:#475569;font-size:0.85rem;">No messages sent yet.</p>
-                    </div>
-                    {% endif %}
-                </div>
-
+            <div class="form-group">
+                <label>Message / Clinical Guidance</label>
+                <textarea name="body" class="form-control" rows="8"
+                    placeholder="Enter clinical observations or shared goals..." required></textarea>
             </div>
-        </main>
+
+            <button type="submit" class="btn-send-msg">📨 Send Review to Resident</button>
+        </form>
     </div>
 
-    <script>
-        function updateCount() {
-            document.getElementById('char-count').textContent =
-                document.getElementById('body').value.length;
-        }
-    </script>
-</body>
-
-</html>
+    <!-- Sent History -->
+    <div class="card">
+        <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: #fff;">📤 Sent History</h2>
+        <div class="sent-list">
+            {% for msg in sent_messages %}
+            <div class="sent-item">
+                <div class="sent-item-header">
+                    <span class="sent-to">To: {{ msg.recipient.username|capfirst }}</span>
+                    {% if msg.is_read %}
+                    <span
+                        style="font-size: 0.6rem; font-weight: 800; color: var(--success); text-transform: uppercase;">Seen</span>
+                    {% else %}
+                    <span
+                        style="font-size: 0.6rem; font-weight: 800; color: #f59e0b; text-transform: uppercase;">Pending</span>
+                    {% endif %}
+                </div>
+                <div class="sent-subject">{{ msg.subject }}</div>
+                <p class="sent-body">{{ msg.body }}</p>
+                <div class="sent-date" style="margin-top: 0.5rem;">{{ msg.created_at|date:"D, d M H:i" }}</div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; color: var(--muted); padding: 2rem;">No messages sent yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

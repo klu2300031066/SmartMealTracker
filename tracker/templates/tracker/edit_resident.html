@@ -1,916 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'tracker/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Edit Resident Medical Profile – MyMeal Care Manager.">
-    <title>Edit Resident – {{ resident.username }} – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% block title %}Edit Resident - {{ resident.username }}{% endblock %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-            display: flex;
-            flex-direction: column;
-        }
+{% block extra_css %}
+<style>
+    .resident-card {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        background: linear-gradient(90deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+        border-left: 4px solid var(--primary);
+        margin-bottom: 2rem;
+    }
 
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(140px);
-            z-index: 0;
-            pointer-events: none;
-        }
+    .edit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
 
-        body::before {
-            width: 550px;
-            height: 550px;
-            background: rgba(16, 185, 129, 0.1);
-            top: -140px;
-            left: -90px;
-        }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
 
-        body::after {
-            width: 480px;
-            height: 480px;
-            background: rgba(239, 68, 68, 0.08);
-            bottom: -110px;
-            right: -80px;
-        }
+    .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.05em;
+    }
 
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.82);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    .form-control {
+        width: 100%;
+        padding: 0.85rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        color: #fff;
+        font-family: inherit;
+    }
 
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
+    .btn-save-profile {
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 1rem;
+    }
 
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
-        }
+    .btn-flag-allergy {
+        padding: 0.75rem 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
 
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
+    .allergy-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
 
-        .badge-manager {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 999px;
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(110, 231, 183, 0.3);
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #6ee7b7;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
+    .btn-del-allergy {
+        background: none;
+        border: none;
+        color: #fca5a5;
+        font-weight: 800;
+        cursor: pointer;
+        padding: 0 0.25rem;
+    }
 
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .bmi-badge {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--secondary);
+    }
 
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            border-color: rgba(248, 113, 113, 0.55);
-            transform: translateY(-1px);
-        }
-
-        /* ── Layout ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(110, 231, 183, 0.08);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.15));
-            color: #6ee7b7;
-            border: 1px solid rgba(110, 231, 183, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 4rem;
-            min-height: calc(100vh - 62px);
-            max-width: 960px;
-        }
-
-        /* ── Breadcrumb ── */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.78rem;
-            color: #475569;
-            margin-bottom: 1.5rem;
-        }
-
-        .breadcrumb a {
-            color: #6ee7b7;
-            text-decoration: none;
-            font-weight: 600;
-            transition: opacity 0.2s;
-        }
-
-        .breadcrumb a:hover {
-            opacity: 0.7;
-        }
-
-        .breadcrumb .sep {
-            color: #334155;
-        }
-
-        /* ── Resident hero header ── */
-        .resident-hero {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.2rem;
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-        }
-
-        .resident-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-        }
-
-        .resident-info h2 {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #e2e8f0;
-        }
-
-        .resident-info p {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 0.15rem;
-        }
-
-        .resident-meta {
-            margin-left: auto;
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .meta-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.3rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .meta-pill.joined {
-            background: rgba(71, 85, 105, 0.2);
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            color: #94a3b8;
-        }
-
-        /* ── Grid layout ── */
+    @media (max-width: 900px) {
         .edit-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
         }
+    }
+</style>
+{% endblock %}
 
-        .edit-grid .full {
-            grid-column: 1 / -1;
-        }
+{% block content %}
+<div class="welcome-section">
+    <a href="{% url 'manager_dashboard' %}"
+        style="color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; display: inline-block;">←
+        Back to Resident Directory</a>
+    <h1 class="heading-xl">Resident Profile Editor</h1>
+    <p class="subtext">Modifying clinical data for <strong>{{ resident.username|capfirst }}</strong>.</p>
+</div>
 
-        /* ── Cards ── */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.15rem;
-            padding: 1.6rem 1.75rem;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-        }
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:1rem; margin-bottom:2rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:{% if message.tags == 'success' %}var(--success){% else %}var(--error){% endif %}; font-weight:600;">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
 
-        .card h3 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
+<div class="edit-grid">
+    <!-- Medical Stats -->
+    <div class="card">
+        <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.5rem; color: #fff;">⚕️ Health Metrics</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_profile">
+            <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" name="weight_kg" step="0.1" class="form-control"
+                    value="{{ profile.weight_kg|default:'' }}" placeholder="e.g. 75.0">
+            </div>
+            <div class="form-group">
+                <label>Height (cm)</label>
+                <input type="number" name="height_cm" step="0.1" class="form-control"
+                    value="{{ profile.height_cm|default:'' }}" placeholder="e.g. 180.0">
+            </div>
+            <div class="form-group">
+                <label>Medical Notes / Clinical Directives</label>
+                <textarea name="medical_notes" class="form-control" rows="4"
+                    placeholder="Any specific requirements or observations...">{{ profile.medical_notes }}</textarea>
+            </div>
+            <button type="submit" class="btn-save-profile">💾 Update Health Data</button>
+        </form>
 
-        .card h3.green {
-            color: #6ee7b7;
-        }
-
-        .card h3.red {
-            color: #fca5a5;
-        }
-
-        /* ── Form elements ── */
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group:last-of-type {
-            margin-bottom: 0;
-        }
-
-        .form-group label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: #64748b;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.6rem;
-            padding: 0.65rem 0.9rem;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: #334155;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: #6ee7b7;
-            box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.15);
-        }
-
-        .form-hint {
-            font-size: 0.7rem;
-            color: #475569;
-            margin-top: 0.2rem;
-        }
-
-        /* ── Buttons ── */
-        .btn-save {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.7rem 1.6rem;
-            border: none;
-            border-radius: 0.6rem;
-            background: linear-gradient(90deg, #10b981, #3b82f6);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.92rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-            transition: transform 0.15s, box-shadow 0.15s;
-            margin-top: 1.25rem;
-        }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(16, 185, 129, 0.48);
-        }
-
-        /* ── Allergy section ── */
-        .allergy-add-row {
-            display: flex;
-            gap: 0.65rem;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .allergy-add-row input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.6rem;
-            padding: 0.62rem 0.9rem;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.88rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .allergy-add-row input::placeholder {
-            color: #334155;
-        }
-
-        .allergy-add-row input:focus {
-            border-color: #f87171;
-            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
-        }
-
-        .btn-flag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.62rem 1.1rem;
-            border: none;
-            border-radius: 0.6rem;
-            background: linear-gradient(90deg, #ef4444, #dc2626);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        .btn-flag:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(239, 68, 68, 0.52);
-        }
-
-        /* ── Allergy alert banner (medical grade) ── */
-        .medical-alert-info {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 0.75rem;
-            padding: 0.85rem 1rem;
-            font-size: 0.8rem;
-            color: #fca5a5;
-            margin-bottom: 1.25rem;
-            line-height: 1.55;
-        }
-
-        .medical-alert-info .alert-icon {
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-
-        /* ── Allergy tags ── */
-        .allergy-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-
-        .allergy-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 999px;
-            padding: 0.35rem 0.55rem 0.35rem 0.85rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #fca5a5;
-            animation: slideIn 0.25s ease both;
-        }
-
-        .btn-del-allergy {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(239, 68, 68, 0.25);
-            color: #fca5a5;
-            font-size: 0.85rem;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 900;
-            transition: background 0.2s, transform 0.15s;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .btn-del-allergy:hover {
-            background: rgba(239, 68, 68, 0.55);
-            transform: scale(1.15);
-        }
-
-        .allergy-empty {
-            text-align: center;
-            padding: 1.5rem 0 0.5rem;
-            color: #475569;
-            font-size: 0.85rem;
-        }
-
-        .allergy-empty span {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 0.35rem;
-        }
-
-        /* ── Messages ── */
-        .msg-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            animation: slideIn 0.35s ease both;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .msg-banner.warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.25);
-            color: #fcd34d;
-        }
-
-        /* ── BMI display ── */
-        .bmi-display {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 0.85rem;
-            margin-top: 1rem;
-        }
-
-        .bmi-value {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #60a5fa;
-            line-height: 1;
-        }
-
-        .bmi-label {
-            font-size: 0.72rem;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-top: 0.3rem;
-        }
-
-        .bmi-category {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 0.35rem;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .edit-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .edit-grid .full {
-                grid-column: 1;
-            }
-
-            .resident-meta {
-                display: none;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- ── Topbar ── -->
-    <header class="topbar">
-        <a href="{% url 'manager_dashboard' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🏥</div>
-            <span class="logo-text">MyMeal — Care</span>
-        </a>
-        <div class="topbar-right">
-            <span class="badge-manager">🛡️ Manager</span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Log Out
-            </a>
+        <div
+            style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: 1rem; text-align: center;">
+            <p style="color: var(--muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Calculated
+                BMI</p>
+            <div class="bmi-badge">{{ profile.bmi|floatformat:1|default:"--" }}</div>
+            <p style="color: var(--secondary); font-weight: 700; margin-top: 0.25rem;">{{
+                profile.bmi_category|default:"Data incomplete" }}</p>
         </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- ── Sidebar ── -->
-        <aside class="sidebar" id="sidebar">
-
-            <span class="sidebar-section-label">Manager Tools</span>
-
-            <a href="{% url 'manager_dashboard' %}" class="sidebar-link active" id="nav-manager">
-                <span class="icon">🏥</span>
-                <span>Resident Overview</span>
-            </a>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link" id="sidebar-logout-btn">
-                    <span class="icon">🚪</span>
-                    <span>Log Out</span>
-                </a>
-            </div>
-
-        </aside>
-
-        <!-- ── Main content ── -->
-        <main class="main">
-
-            <!-- Breadcrumb -->
-            <nav class="breadcrumb" aria-label="Breadcrumb">
-                <a href="{% url 'manager_dashboard' %}">← Resident Overview</a>
-                <span class="sep">/</span>
-                <span style="color:#94a3b8;">{{ resident.username }}</span>
-            </nav>
-
-            <!-- Resident hero -->
-            <div class="resident-hero">
-                <div class="resident-avatar">{{ resident.username|slice:":1" }}</div>
-                <div class="resident-info">
-                    <h2>{{ resident.username }}</h2>
-                    <p>{{ resident.email|default:"No email address on file" }}</p>
-                </div>
-                <div class="resident-meta">
-                    <span class="meta-pill joined">📅 Joined {{ resident.date_joined|date:"d M Y" }}</span>
-                </div>
-            </div>
-
-            <!-- Messages -->
-            {% if messages %}
-            {% for message in messages %}
-            <div class="msg-banner {{ message.tags }}" role="alert">
-                {% if message.tags == 'success' %}✅
-                {% elif message.tags == 'error' %}🚫
-                {% else %}⚠️{% endif %}
-                {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            <div class="edit-grid">
-
-                <!-- ── Medical Stats (left) ── -->
-                <div class="card">
-                    <h3 class="green">⚕️ Medical Stats</h3>
-
-                    <form method="POST" action="{% url 'edit_resident_profile' resident.id %}" id="profile-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="save_profile">
-
-                        <div class="form-group">
-                            <label for="weight_kg">Weight (kg)</label>
-                            <input type="number" id="weight_kg" name="weight_kg" step="0.1" min="0" max="500"
-                                placeholder="e.g. 72.5" value="{{ profile.weight_kg|default:'' }}" oninput="calcBMI()">
-                            <span class="form-hint">Leave blank if not measured.</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="height_cm">Height (cm)</label>
-                            <input type="number" id="height_cm" name="height_cm" step="0.1" min="0" max="300"
-                                placeholder="e.g. 170" value="{{ profile.height_cm|default:'' }}" oninput="calcBMI()">
-                            <span class="form-hint">Leave blank if not measured.</span>
-                        </div>
-
-                        <!-- BMI preview -->
-                        <div class="bmi-display" id="bmi-display" style="display:none;">
-                            <div class="bmi-value" id="bmi-value">—</div>
-                            <div class="bmi-label">BMI</div>
-                            <div class="bmi-category" id="bmi-category"></div>
-                        </div>
-
-                        <div class="form-group" style="margin-top:1rem;">
-                            <label for="medical_notes">Medical Notes</label>
-                            <textarea id="medical_notes" name="medical_notes"
-                                placeholder="e.g. Diabetic (Type 2). Low-sodium diet required. No shellfish.">{{ profile.medical_notes }}</textarea>
-                        </div>
-
-                        <button type="submit" class="btn-save" id="save-profile-btn">
-                            💾 Save Medical Profile
-                        </button>
-                    </form>
-                </div>
-
-                <!-- ── Allergy Safety (right) ── -->
-                <div class="card">
-                    <h3 class="red">⚠️ Allergy Safety Flags</h3>
-
-                    <div class="medical-alert-info">
-                        <span class="alert-icon">🔴</span>
-                        <span>
-                            Any keyword flagged here will trigger a <strong>high-priority Medical Alert</strong>
-                            whenever this resident tries to log a matching food in Track Meals.
-                            Add precise ingredient keywords (e.g. <em>peanut</em>, <em>gluten</em>, <em>dairy</em>).
-                        </span>
-                    </div>
-
-                    <!-- Add allergy form -->
-                    <form method="POST" action="{% url 'edit_resident_profile' resident.id %}" id="add-allergy-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="add_allergy">
-                        <div class="allergy-add-row">
-                            <input type="text" name="keyword" id="allergy-keyword-input"
-                                placeholder="e.g. peanut, gluten, dairy, shellfish…" autocomplete="off" maxlength="100"
-                                required>
-                            <button type="submit" class="btn-flag" id="btn-flag-allergy">
-                                🚨 Flag
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Listed allergy tags -->
-                    <h4
-                        style="font-size:0.82rem;font-weight:700;color:#94a3b8;margin-bottom:0.75rem;letter-spacing:0.05em;text-transform:uppercase;">
-                        Currently Flagged
-                    </h4>
-
-                    {% if allergies %}
-                    <div class="allergy-tags" id="allergy-tags-list">
-                        {% for allergy in allergies %}
-                        <span class="allergy-tag">
-                            🚨 {{ allergy.keyword|capfirst }}
-                            <form method="POST" action="{% url 'edit_resident_profile' resident.id %}"
-                                style="margin:0;display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete_allergy">
-                                <input type="hidden" name="allergy_id" value="{{ allergy.id }}">
-                                <button type="submit" class="btn-del-allergy" title="Remove {{ allergy.keyword }}"
-                                    id="del-allergy-{{ allergy.id }}">×</button>
-                            </form>
-                        </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="allergy-empty">
-                        <span>✅</span>
-                        No allergies flagged yet for this resident.
-                    </div>
-                    {% endif %}
-                </div>
-
-            </div><!-- /edit-grid -->
-
-        </main>
     </div>
 
-    <script>
-        function calcBMI() {
-            const weightEl = document.getElementById('weight_kg');
-            const heightEl = document.getElementById('height_cm');
-            const display = document.getElementById('bmi-display');
-            const valEl = document.getElementById('bmi-value');
-            const catEl = document.getElementById('bmi-category');
+    <!-- Allergy Management -->
+    <div class="card">
+        <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.5rem; color: #fca5a5;">⚠️ Allergy Safety Flags
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem;">
+            Flagging allergens will automatically cross-reference any food items tracked by this resident to prevent
+            hazardous consumption.
+        </p>
 
-            const w = parseFloat(weightEl.value);
-            const h = parseFloat(heightEl.value);
+        <form method="POST" style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_allergy">
+            <input type="text" name="keyword" class="form-control" placeholder="e.g. Peanuts" required>
+            <button type="submit" class="btn-flag-allergy">Flag</button>
+        </form>
 
-            if (!w || !h || h <= 0) {
-                display.style.display = 'none';
-                return;
-            }
-
-            const bmi = w / ((h / 100) ** 2);
-            valEl.textContent = bmi.toFixed(1);
-
-            let cat = '', color = '#60a5fa';
-            if (bmi < 18.5) { cat = '🔵 Underweight'; color = '#60a5fa'; }
-            else if (bmi < 25) { cat = '✅ Normal'; color = '#6ee7b7'; }
-            else if (bmi < 30) { cat = '🟡 Overweight'; color = '#fcd34d'; }
-            else { cat = '🔴 Obese'; color = '#f87171'; }
-
-            catEl.textContent = cat;
-            catEl.style.color = color;
-            valEl.style.color = color;
-            display.style.display = 'block';
-        }
-
-        // Run on load if values already present
-        calcBMI();
-    </script>
-
-</body>
-
-</html>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+            {% for a in allergies %}
+            <span class="allergy-tag">
+                {{ a.keyword|capfirst }}
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_allergy">
+                    <input type="hidden" name="allergy_id" value="{{ a.id }}">
+                    <button type="submit" class="btn-del-allergy">×</button>
+                </form>
+            </span>
+            {% empty %}
+            <div style="width: 100%; text-align: center; color: var(--muted); padding: 2rem;">
+                No allergies flagged for this resident.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

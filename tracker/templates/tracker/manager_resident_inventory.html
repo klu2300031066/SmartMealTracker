@@ -1,0 +1,108 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Resident Inventory - {{ resident.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .resident-banner {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        background: rgba(16, 185, 129, 0.05);
+        border-radius: 1.25rem;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .inventory-card {
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        transition: all 0.2s;
+    }
+
+    .inventory-card:hover {
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .item-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .item-name {
+        display: block;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.1rem;
+    }
+
+    .item-quantity {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--success);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <a href="{% url 'manager_inventory_search' %}"
+        style="color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; display: inline-block;">←
+        Back to Resident List</a>
+    <h1 class="heading-xl">Resident Pantry Audit</h1>
+    <p class="subtext">Reviewing <strong>{{ resident.username|capfirst }}'s</strong> current stock levels.</p>
+</div>
+
+<div class="resident-banner">
+    <div
+        style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--success), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff;">
+        {{ resident.username|slice:":1"|upper }}
+    </div>
+    <div>
+        <h3 style="color: #fff; margin-bottom: 0.1rem;">{{ resident.username|capfirst }}</h3>
+        <p style="color: var(--muted); font-size: 0.8rem;">Monitoring inventory for nutritional safety and waste
+            reduction.</p>
+    </div>
+</div>
+
+{% if inventory_items %}
+<div class="inventory-grid">
+    {% for item in inventory_items %}
+    <div class="card inventory-card">
+        <div class="item-icon">📦</div>
+        <div>
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-quantity">{{ item.quantity|floatformat }} {{ item.unit }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 5rem 2rem;">
+    <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📭</span>
+    <h3 style="color: var(--muted);">Pantry is Empty</h3>
+    <p style="color: var(--muted); font-size: 0.9rem;">This resident has not added any items to their inventory yet.</p>
+</div>
+{% endif %}
+{% endblock %}

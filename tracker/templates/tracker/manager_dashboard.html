@@ -1,865 +1,232 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Manager Dashboard – MyMeal Care.">
-    <title>Manager Dashboard – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            width: 550px;
-            height: 550px;
-            background: rgba(16, 185, 129, 0.09);
-            border-radius: 50%;
-            filter: blur(140px);
-            top: -140px;
-            left: -90px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 480px;
-            height: 480px;
-            background: rgba(59, 130, 246, 0.09);
-            border-radius: 50%;
-            filter: blur(140px);
-            bottom: -110px;
-            right: -80px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.85);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .badge-manager {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(110, 231, 183, 0.3);
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #6ee7b7;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #6ee7b7;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            transform: translateY(-1px);
-        }
-
-        /* ── Shell ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(110, 231, 183, 0.08);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.15));
-            color: #6ee7b7;
-            border: 1px solid rgba(110, 231, 183, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        /* ── Main ── */
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 4rem;
-        }
-
-        /* ── Content panels ── */
-        .content-panel {
-            display: none;
-        }
-
-        .content-panel.active {
-            display: block;
-        }
-
-        /* ── Page header ── */
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
-
-        /* ── Stats row ── */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.1rem;
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            backdrop-filter: blur(14px);
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .stat-icon {
-            font-size: 1.6rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .stat-value.green {
-            color: #6ee7b7;
-        }
-
-        .stat-value.blue {
-            color: #60a5fa;
-        }
-
-        .stat-value.red {
-            color: #f87171;
-        }
-
-        .stat-label {
-            font-size: 0.72rem;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* ── Card ── */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            padding: 1.75rem 2rem;
-            backdrop-filter: blur(16px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-            margin-bottom: 1.5rem;
-        }
-
-        .card h2 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #6ee7b7;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
-
-        /* ── Table ── */
-        .residents-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .residents-table thead th {
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.09em;
-            color: #475569;
-            padding: 0 1rem 0.85rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-        }
-
-        .residents-table tbody tr {
-            transition: background 0.18s;
-        }
-
-        .residents-table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        .residents-table tbody td {
-            padding: 0.9rem 1rem;
-            font-size: 0.88rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            vertical-align: middle;
-        }
-
-        .residents-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .user-cell {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #fff;
-            flex-shrink: 0;
-            text-transform: uppercase;
-        }
-
-        .user-name {
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-
-        .user-email {
-            font-size: 0.75rem;
-            color: #64748b;
-        }
-
-        .allergy-count {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.22rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        .allergy-count.has-allergies {
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-        }
-
-        .allergy-count.no-allergies {
-            background: rgba(71, 85, 105, 0.2);
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            color: #64748b;
-        }
-
-        .profile-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.22rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            font-weight: 600;
-        }
-
-        .profile-badge.complete {
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #6ee7b7;
-        }
-
-        .profile-badge.incomplete {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.25);
-            color: #fcd34d;
-        }
-
-        .btn-edit {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.42rem 1rem;
-            border-radius: 0.55rem;
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(110, 231, 183, 0.3);
-            color: #6ee7b7;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
-        }
-
-        .btn-edit:hover {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.32), rgba(59, 130, 246, 0.25));
-            border-color: rgba(110, 231, 183, 0.55);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
-        }
-
-        /* ── Manager Profile ── */
-        .profile-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 0.9rem;
-            padding: 1.1rem 1.3rem;
-        }
-
-        .info-label {
-            font-size: 0.68rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #475569;
-            margin-bottom: 0.35rem;
-        }
-
-        .info-value {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #e2e8f0;
-        }
-
-        .manager-avatar-big {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            box-shadow: 0 0 24px rgba(16, 185, 129, 0.35);
-            margin-bottom: 1.25rem;
-        }
-
-        /* ── Messages ── */
-        .msg-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            animation: slideIn 0.35s ease both;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #475569;
-        }
-
-        .empty-state .es-icon {
-            font-size: 3rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .empty-state h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #64748b;
-            margin-bottom: 0.4rem;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-
-            .nav-user {
-                display: none;
-            }
-
-            .stats-row {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Topbar -->
-    <header class="topbar">
-        <a href="{% url 'manager_dashboard' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🏥</div>
-            <span class="logo-text">MyMeal — Care</span>
-        </a>
-        <div class="topbar-right">
-            <span class="badge-manager">🛡️ Manager</span>
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Log Out
-            </a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-
-            <span class="sidebar-section-label">Manager</span>
-
-            <button class="sidebar-link active" id="nav-panel" onclick="showPanel('panel', this)">
-                <span class="icon">🏥</span>
-                <span>Manager Panel</span>
-            </button>
-
-            <a href="{% url 'patient_food_info' %}" class="sidebar-link" id="nav-food-info">
-                <span class="icon">📊</span>
-                <span>Patient Food Info</span>
-            </a>
-
-            <a href="{% url 'send_weekly_review' %}" class="sidebar-link" id="nav-review">
-                <span class="icon">📨</span>
-                <span>Send Weekly Review</span>
-            </a>
-
-            <button class="sidebar-link" id="nav-profile" onclick="showPanel('profile', this)">
-                <span class="icon">👤</span>
-                <span>Manager Profile</span>
-            </button>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link" id="sidebar-logout-btn">
-                    <span class="icon">🚪</span>
-                    <span>Log Out</span>
-                </a>
-            </div>
-
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-
-            {% if messages %}
-            {% for message in messages %}
-            <div class="msg-banner {{ message.tags }}">
-                {% if message.tags == 'success' %}✅{% else %}🚫{% endif %} {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            <!-- ══ Panel: Manager Panel ══ -->
-            <div class="content-panel active" id="panel-panel">
-
-                <div class="page-header">
-                    <h1>🏥 Resident Management</h1>
-                    <p>Review and update the medical profiles and allergy safety flags for all registered residents.</p>
-                </div>
-
-                <!-- Stats -->
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <span class="stat-icon">👥</span>
-                        <span class="stat-value green">{{ residents|length }}</span>
-                        <span class="stat-label">Total Residents</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">⚠️</span>
-                        <span class="stat-value red" id="allergy-count-stat">—</span>
-                        <span class="stat-label">With Allergies</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">📋</span>
-                        <span class="stat-value blue" id="profile-count-stat">—</span>
-                        <span class="stat-label">Complete Profiles</span>
-                    </div>
-                </div>
-
-                <!-- Residents table -->
-                <div class="card">
-                    <h2>👥 All Residents</h2>
-
-                    {% if residents %}
-                    <table class="residents-table" id="residents-table">
-                        <thead>
-                            <tr>
-                                <th>Resident</th>
-                                <th>Allergies Flagged</th>
-                                <th>Medical Profile</th>
-                                <th>Date Joined</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for resident in residents %}
-                            {% with p=resident.profile %}
-                            <tr data-has-allergies="{{ p.allergies.count }}"
-                                data-has-profile="{% if p.weight_kg or p.height_cm %}1{% else %}0{% endif %}">
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="avatar">{{ resident.username|slice:":1" }}</div>
-                                        <div>
-                                            <div class="user-name">{{ resident.username }}</div>
-                                            <div class="user-email">{{ resident.email|default:"no email" }}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    {% if p.allergies.count > 0 %}
-                                    <span class="allergy-count has-allergies">⚠️ {{ p.allergies.count }} flag(s)</span>
-                                    {% else %}
-                                    <span class="allergy-count no-allergies">✅ None</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if p.weight_kg or p.height_cm %}
-                                    <span class="profile-badge complete">✅ Complete</span>
-                                    {% else %}
-                                    <span class="profile-badge incomplete">⚪ Pending</span>
-                                    {% endif %}
-                                </td>
-                                <td style="color:#64748b;font-size:0.8rem;">{{ resident.date_joined|date:"d M Y" }}</td>
-                                <td>
-                                    <a href="{% url 'edit_resident_profile' resident.id %}" class="btn-edit"
-                                        id="edit-resident-{{ resident.id }}">
-                                        ✏️ Edit Profile
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endwith %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
-
-                    {% else %}
-                    <div class="empty-state">
-                        <div class="es-icon">👤</div>
-                        <h3>No Residents Found</h3>
-                        <p>No regular (non-staff) accounts exist yet. Ask residents to sign up.</p>
-                    </div>
-                    {% endif %}
-                </div>
-
-            </div>
-
-            <!-- ══ Panel: Manager Profile ══ -->
-            <div class="content-panel" id="panel-profile">
-
-                <div class="page-header">
-                    <h1>👤 Manager Profile</h1>
-                    <p>Your account information and manager access details.</p>
-                </div>
-
-                <div class="card">
-                    <div class="manager-avatar-big">{{ request.user.username|slice:":1" }}</div>
-
-                    <div class="profile-info-grid">
-                        <div class="info-card">
-                            <div class="info-label">Username</div>
-                            <div class="info-value">{{ request.user.username }}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Email</div>
-                            <div class="info-value">{{ request.user.email|default:"Not set" }}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Role</div>
-                            <div class="info-value" style="color:#6ee7b7;">🛡️ Care Manager</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Account Since</div>
-                            <div class="info-value">{{ request.user.date_joined|date:"d M Y" }}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Last Login</div>
-                            <div class="info-value">{{ request.user.last_login|date:"d M Y, H:i"|default:"—" }}</div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-label">Residents Managed</div>
-                            <div class="info-value" style="color:#a78bfa;">{{ residents|length }}</div>
-                        </div>
-                    </div>
-
-                    <div
-                        style="padding:1.1rem 1.3rem;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:0.8rem;font-size:0.82rem;color:#64748b;display:flex;gap:0.65rem;align-items:flex-start;">
-                        <span style="font-size:1.1rem;flex-shrink:0;">ℹ️</span>
-                        <span>To change your password or update account details, visit the
-                            <a href="/admin/" style="color:#6ee7b7;text-decoration:none;font-weight:600;">Django Admin
-                                panel</a>.
-                        </span>
-                    </div>
-                </div>
-
-            </div>
-
-        </main>
+{% extends 'tracker/base.html' %}
+
+{% block title %}Manager Dashboard - MyMeal Care{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-card.compact {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #fff;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+
+    /* Residents Table */
+    .residents-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .residents-table th {
+        text-align: left;
+        padding: 1rem;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .residents-table td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .user-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .res-name {
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .res-email {
+        font-size: 0.8rem;
+        color: var(--muted);
+    }
+
+    .badge-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .badge-allergy {
+        background: rgba(239, 68, 68, 0.1);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .badge-ok {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-manage {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .btn-manage:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--accent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">🏥 Clinical Oversight</h1>
+    <p class="subtext">Resident Management & Health Monitoring Dashboard.</p>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-row">
+    <div class="card stat-card compact">
+        <span class="stat-icon">👥</span>
+        <span class="stat-value">{{ residents|length }}</span>
+        <span class="stat-label">Total Residents</span>
     </div>
+    <div class="card stat-card compact">
+        <span class="stat-icon">⚠️</span>
+        <span class="stat-value" style="color: #fca5a5;">{{ residents_with_allergies_count|default:"0" }}</span>
+        <span class="stat-label">With Allergies</span>
+    </div>
+    <div class="card stat-card compact">
+        <span class="stat-icon">✅</span>
+        <span class="stat-value" style="color: var(--success);">{{ completed_profiles_count|default:"0" }}</span>
+        <span class="stat-label">Complete Profiles</span>
+    </div>
+</div>
 
-    <script>
-        function showPanel(name, btn) {
-            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-            document.getElementById('panel-' + name).classList.add('active');
-            btn.classList.add('active');
-        }
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:1rem; margin-bottom:2rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:{% if message.tags == 'success' %}var(--success){% else %}var(--error){% endif %}; font-weight:600;">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
 
-        // Compute stats from table
-        const rows = document.querySelectorAll('#residents-table tbody tr');
-        let withAllergies = 0, withProfile = 0;
-        rows.forEach(r => {
-            if (parseInt(r.dataset.hasAllergies) > 0) withAllergies++;
-            if (r.dataset.hasProfile === '1') withProfile++;
-        });
-        const el1 = document.getElementById('allergy-count-stat');
-        const el2 = document.getElementById('profile-count-stat');
-        if (el1) el1.textContent = withAllergies;
-        if (el2) el2.textContent = withProfile;
-    </script>
-
-</body>
-
-</html>
+<!-- Residents List -->
+<div class="card" style="padding: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: #fff;">Resident Directory</h2>
+    <div style="overflow-x: auto;">
+        <table class="residents-table">
+            <thead>
+                <tr>
+                    <th>Resident</th>
+                    <th>Allergy Status</th>
+                    <th>Medical Profile</th>
+                    <th>Joined</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resident in residents %}
+                <tr>
+                    <td>
+                        <div class="user-info">
+                            <div class="user-avatar">{{ resident.username|slice:":1"|upper }}</div>
+                            <div class="user-details">
+                                <span class="res-name">{{ resident.username|capfirst }}</span>
+                                <span class="res-email">{{ resident.email|default:"No email" }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if resident.profile.allergies.all %}
+                        <span class="badge-status badge-allergy">⚠️ {{ resident.profile.allergies.count }} Flags</span>
+                        {% else %}
+                        <span class="badge-status badge-ok">✅ None</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if resident.profile.weight_kg and resident.profile.height_cm %}
+                        <span style="color: var(--success); font-size: 0.85rem; font-weight: 600;">Complete</span>
+                        {% else %}
+                        <span style="color: #fcd34d; font-size: 0.85rem; font-weight: 600;">Incomplete</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--muted);">
+                        {{ resident.date_joined|date:"d M Y" }}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'edit_resident_profile' resident.id %}" class="btn-manage">Edit Profile</a>
+                        <a href="{% url 'manager_view_resident_inventory' resident.id %}" class="btn-manage"
+                            style="margin-left: 0.5rem; color: var(--accent);">Inventory</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--muted);">No residents
+                        registered yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

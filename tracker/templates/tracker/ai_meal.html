@@ -1,739 +1,326 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'tracker/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="AI-powered zero-waste meal generator — uses your inventory to create a personalised recipe.">
-    <title>AI Meal Generator – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+{% block title %}AI Meal Generator - MyMeal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .context-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+
+    .ctx-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.5rem 1.25rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .ctx-pill strong {
+        color: var(--accent);
+    }
+
+    .btn-generate {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        border: none;
+        border-radius: 1rem;
+        color: #fff;
+        font-family: inherit;
+        font-size: 1.1rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+        transition: all 0.2s;
+        margin-bottom: 2rem;
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(124, 58, 237, 0.6);
+    }
+
+    .btn-generate:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .ai-loader {
+        display: none;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(124, 58, 237, 0.1);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1.5rem;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .recipe-card {
+        display: none;
+        background: var(--surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(124, 58, 237, 0.3);
+        border-radius: 2rem;
+        overflow: hidden;
+        margin-bottom: 3rem;
+        animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, rgba(6, 182, 212, 0.08) 70%, transparent 100%);
-            top: -160px;
-            right: -160px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.75);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(124, 58, 237, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #c4b5fd;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            transform: translateY(-1px);
-        }
-
-        /* ── Shell ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sb-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sb-label:first-child {
-            margin-top: 0;
-        }
-
-        .sb-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-        }
-
-        .sb-link:hover {
-            background: rgba(167, 139, 250, 0.1);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sb-link.active {
-            background: linear-gradient(90deg, rgba(124, 58, 237, 0.3), rgba(6, 182, 212, 0.2));
-            color: #a78bfa;
-            border: 1px solid rgba(167, 139, 250, 0.25);
-            font-weight: 700;
-        }
-
-        .sb-link .ic {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sb-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sb-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        /* ── Main ── */
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.5rem 2rem 5rem;
-            max-width: 800px;
-        }
-
-        /* ── Page header ── */
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.7rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #a78bfa, #06b6d4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.35rem;
-        }
-
-        /* ── Context pills ── */
-        .context-row {
-            display: flex;
-            gap: 0.65rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-
-        .ctx-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 999px;
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-
-        .ctx-pill strong {
-            color: #a78bfa;
-        }
-
-        /* ── Big Generate Button ── */
-        .btn-generate {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.7rem;
-            width: 100%;
-            padding: 1.1rem;
-            background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
-            border: none;
-            border-radius: 1rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 1.05rem;
-            font-weight: 800;
-            cursor: pointer;
-            letter-spacing: 0.01em;
-            box-shadow: 0 6px 24px rgba(124, 58, 237, 0.45);
-            transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
-            margin-bottom: 2rem;
-        }
-
-        .btn-generate:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(124, 58, 237, 0.6);
-        }
-
-        .btn-generate:active {
+        to {
+            opacity: 1;
             transform: translateY(0);
         }
+    }
 
-        .btn-generate:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+    .recipe-hero {
+        padding: 2.5rem;
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.1));
+        border-bottom: 1px solid var(--border);
+    }
 
-        .btn-generate .spark {
-            font-size: 1.4rem;
-        }
+    .recipe-name {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 1rem;
+    }
 
-        /* ── Loader ── */
-        .ai-loader {
-            display: none;
-            text-align: center;
-            padding: 3rem 2rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 1.2rem;
-            margin-bottom: 2rem;
-        }
+    .recipe-cal {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(167, 139, 250, 0.1);
+        border: 1px solid rgba(167, 139, 250, 0.2);
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-weight: 700;
+        color: var(--accent);
+    }
 
-        .spinner {
-            display: inline-block;
-            width: 48px;
-            height: 48px;
-            border: 3px solid rgba(124, 58, 237, 0.2);
-            border-top-color: #7c3aed;
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-            margin-bottom: 1rem;
-        }
+    .recipe-body {
+        padding: 2.5rem;
+    }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+    .section-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        margin-bottom: 1.25rem;
+    }
 
-        .ai-loader p {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
+    .steps-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2.5rem;
+    }
 
-        /* ── Error banner ── */
-        .ai-error {
-            display: none;
-            background: rgba(248, 113, 113, 0.1);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.85rem;
-            padding: 1rem 1.25rem;
-            color: #fca5a5;
-            font-size: 0.88rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
+    .step-item {
+        display: flex;
+        gap: 1.25rem;
+        align-items: flex-start;
+        padding: 1.25rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+    }
 
-        .ai-error.visible {
-            display: block;
-            animation: fadeUp 0.3s ease both;
-        }
+    .step-num {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+    }
 
-        /* ── Recipe Card ── */
-        .recipe-card {
-            display: none;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(124, 58, 237, 0.25);
-            border-radius: 1.4rem;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
+    .btn-cook {
+        width: 100%;
+        padding: 1.25rem;
+        background: var(--success);
+        color: #fff;
+        border: none;
+        border-radius: 1.25rem;
+        font-weight: 800;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        transition: all 0.2s;
+    }
 
-        .recipe-card.visible {
-            display: block;
-            animation: fadeUp 0.35s ease both;
-        }
+    .btn-cook:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5);
+    }
 
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
+    .chip {
+        display: inline-block;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #60a5fa;
+        margin: 0.25rem;
+    }
+</style>
+{% endblock %}
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">✨ AI Personal Chef</h1>
+    <p class="subtext">Zero-waste cooking! Generate delicious recipes using ingredients you already have.</p>
+</div>
 
-        .recipe-hero {
-            padding: 1.75rem 2rem 1.5rem;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(6, 182, 212, 0.10));
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-        }
+<div class="context-row">
+    <div class="ctx-pill">📦 Uses <strong>your inventory</strong></div>
+    <div class="ctx-pill">⚠️ Safely skips <strong>your allergens</strong></div>
+    <div class="ctx-pill">🔥 Fits <strong>calorie budget</strong></div>
+</div>
 
-        .recipe-name {
-            font-size: 1.55rem;
-            font-weight: 800;
-            color: #e2e8f0;
-            letter-spacing: -0.3px;
-            margin-bottom: 0.55rem;
-        }
+<button class="btn-generate" id="btn-generate" onclick="generateMeal()">
+    <span>✨</span> Generate My AI Recipe
+</button>
 
-        .recipe-cal {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: rgba(167, 139, 250, 0.15);
-            border: 1px solid rgba(167, 139, 250, 0.3);
-            border-radius: 999px;
-            padding: 0.25rem 0.85rem;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #c4b5fd;
-        }
+<div class="ai-loader" id="ai-loader">
+    <div class="spinner"></div>
+    <h3 style="margin-bottom: 0.5rem; color: #fff;">Consulting Chef Gemini...</h3>
+    <p style="color: var(--muted);">Crafting a personalised zero-waste recipe just for you.</p>
+</div>
 
-        .recipe-body {
-            padding: 1.75rem 2rem;
-        }
-
-        .section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            margin-bottom: 0.75rem;
-        }
-
-        .steps-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .step-item {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-start;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 0.75rem;
-            padding: 0.8rem 1rem;
-            font-size: 0.9rem;
-            color: #cbd5e1;
-            line-height: 1.6;
-        }
-
-        .step-num {
-            flex-shrink: 0;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #fff;
-            margin-top: 1px;
-        }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .chip {
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.25);
-            border-radius: 999px;
-            padding: 0.25rem 0.8rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #67e8f9;
-        }
-
-        .btn-cook {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(90deg, #10b981, #059669);
-            border: none;
-            border-radius: 0.85rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
-            transition: transform 0.15s, box-shadow 0.15s;
-            letter-spacing: 0.01em;
-        }
-
-        .btn-cook:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.55);
-        }
-
-        /* ── Messages ── */
-        .msg-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            animation: fadeUp 0.3s ease both;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        .msg-banner.warning {
-            background: rgba(251, 191, 36, 0.12);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            color: #fde68a;
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sb-link span:not(.ic) {
-                display: none;
-            }
-
-            .sb-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-
-            .nav-user {
-                display: none;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Topbar -->
-    <header class="topbar">
-        <a href="{% url 'welcome' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">✨</div>
-            <span class="logo-text">MyMeal</span>
-        </a>
-        <div class="topbar-right">
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">Log Out</a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <span class="sb-label">Main</span>
-            <a href="{% url 'dashboard' %}" class="sb-link" id="nav-dash">
-                <span class="ic">🍽️</span><span>My Dashboard</span>
-            </a>
-            <a href="{% url 'track_meals' %}" class="sb-link" id="nav-track">
-                <span class="ic">📊</span><span>Track Meals</span>
-            </a>
-            <a href="{% url 'inventory' %}" class="sb-link" id="nav-inv">
-                <span class="ic">📦</span><span>Inventory</span>
-            </a>
-            <a href="{% url 'ai_meal_page' %}" class="sb-link active" id="nav-ai">
-                <span class="ic">✨</span><span>AI Meal Generator</span>
-            </a>
-            <div class="sb-divider"></div>
-            <span class="sb-label">Account</span>
-            <a href="{% url 'weekly_review_inbox' %}" class="sb-link" id="nav-inbox">
-                <span class="ic">📬</span><span>Weekly Reviews</span>
-            </a>
-            <div class="sb-footer">
-                <div class="sb-divider"></div>
-                <a href="{% url 'logout' %}" class="sb-link" id="sidebar-logout-btn">
-                    <span class="ic">🚪</span><span>Log Out</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-
-            <div class="page-header">
-                <h1>✨ AI Meal Generator</h1>
-                <p>Your personal zero-waste chef — reads your inventory, skips allergens, and fits your calorie budget.
-                </p>
-            </div>
-
-            {% if messages %}
-            {% for message in messages %}
-            <div class="msg-banner {{ message.tags }}">
-                {% if message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚠️{% else %}❌{% endif %}
-                {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-
-            <!-- Context pills -->
-            <div class="context-row" id="ctx-row">
-                <div class="ctx-pill">📦 Sourced from <strong>your inventory</strong></div>
-                <div class="ctx-pill">⚠️ Skips <strong>your allergens</strong></div>
-                <div class="ctx-pill">🔥 Fits <strong>remaining budget</strong></div>
-            </div>
-
-            <!-- Generate button -->
-            <button class="btn-generate" id="btn-generate" onclick="generateMeal()">
-                <span class="spark">✨</span> Generate AI Meal
-            </button>
-
-            <!-- Loader -->
-            <div class="ai-loader" id="ai-loader">
-                <div class="spinner"></div>
-                <p>Consulting Gemini AI&hellip; crafting your personalised recipe 🍳</p>
-            </div>
-
-            <!-- Error -->
-            <div class="ai-error" id="ai-error">
-                <strong>⚠️ Error</strong> — <span id="ai-error-msg"></span>
-            </div>
-
-            <!-- Recipe card (revealed after generation) -->
-            <div class="recipe-card" id="recipe-card">
-                <div class="recipe-hero">
-                    <div class="recipe-name" id="recipe-name"></div>
-                    <div class="recipe-cal">🔥 <span id="recipe-cal"></span> kcal estimated</div>
-                </div>
-                <div class="recipe-body">
-                    <div class="section-label">🧑‍🍳 Instructions</div>
-                    <ol class="steps-list" id="steps-list"></ol>
-
-                    <div class="section-label">🛒 Ingredients Used</div>
-                    <div class="chips" id="chips"></div>
-
-                    <form method="POST" action="{% url 'confirm_ai_meal' %}" id="cook-form">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-cook" id="btn-cook">
-                            🍳 Cook This! — Deduct from Inventory & Log Meal
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-        </main>
+<div class="recipe-card" id="recipe-card">
+    <div class="recipe-hero">
+        <h2 class="recipe-name" id="recipe-name"></h2>
+        <div class="recipe-cal">🔥 <span id="recipe-cal"></span> kcal estimated</div>
     </div>
+    <div class="recipe-body">
+        <div class="section-label">🧑‍🍳 Instructions</div>
+        <div id="steps-list" class="steps-list"></div>
 
-    <script>
-        var btnGen = document.getElementById('btn-generate');
-        var loader = document.getElementById('ai-loader');
-        var errorEl = document.getElementById('ai-error');
-        var errorMsg = document.getElementById('ai-error-msg');
-        var card = document.getElementById('recipe-card');
+        <div class="section-label">🛒 Ingredients Used</div>
+        <div id="chips" style="margin-bottom: 2.5rem;"></div>
 
-        function generateMeal() {
-            // Reset UI
-            card.classList.remove('visible');
-            errorEl.classList.remove('visible');
-            loader.style.display = 'block';
-            btnGen.disabled = true;
-            btnGen.innerHTML = '<span class="spark">⏳</span> Generating…';
+        <form method="POST" action="{% url 'confirm_ai_meal' %}" id="cook-form">
+            {% csrf_token %}
+            <button type="submit" class="btn-cook">
+                🍳 Cook This & Log to Dashboard
+            </button>
+        </form>
+    </div>
+</div>
 
-            var csrf = document.querySelector('#cook-form [name=csrfmiddlewaretoken]').value;
+<div style="margin-top: 2rem;">
+    <a href="{% url 'dashboard' %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">← Back to
+        Dashboard</a>
+</div>
+{% endblock %}
 
-            fetch("{% url 'generate_ai_meal' %}", {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
-                body: '{}',
-            })
-                .then(r => r.json())
-                .then(data => {
-                    loader.style.display = 'none';
-                    btnGen.disabled = false;
-                    btnGen.innerHTML = '<span class="spark">✨</span> Generate Another';
+{% block extra_js %}
+<script>
+    const btnGen = document.getElementById('btn-generate');
+    const loader = document.getElementById('ai-loader');
+    const card = document.getElementById('recipe-card');
 
-                    if (data.error) {
-                        errorMsg.textContent = data.error;
-                        errorEl.classList.add('visible');
-                        return;
-                    }
+    function generateMeal() {
+        card.style.display = 'none';
+        loader.style.display = 'block';
+        btnGen.disabled = true;
+        btnGen.innerHTML = '<span>⏳</span> Chef is thinking...';
 
-                    var r = data.recipe;
+        const csrf = document.querySelector('#cook-form [name=csrfmiddlewaretoken]').value;
 
-                    // Populate hero
-                    document.getElementById('recipe-name').textContent = r.recipe_name || 'AI-Generated Recipe';
-                    document.getElementById('recipe-cal').textContent = r.estimated_calories || '—';
+        fetch("{% url 'generate_ai_meal' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' },
+            body: '{}',
+        })
+            .then(r => r.json())
+            .then(data => {
+                loader.style.display = 'none';
+                btnGen.disabled = false;
+                btnGen.innerHTML = '<span>✨</span> Regenerate Recipe';
 
-                    // Steps
-                    var steps = document.getElementById('steps-list');
-                    steps.innerHTML = '';
-                    (r.instructions || []).forEach((s, i) => {
-                        var li = document.createElement('li');
-                        li.className = 'step-item';
-                        li.innerHTML = '<span class="step-num">' + (i + 1) + '</span><span>' + s + '</span>';
-                        steps.appendChild(li);
-                    });
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
 
-                    // Ingredient chips
-                    var chips = document.getElementById('chips');
-                    chips.innerHTML = '';
-                    (r.ingredients_used || []).forEach(ing => {
-                        var c = document.createElement('span');
-                        c.className = 'chip';
-                        c.textContent = ing.quantity + ' ' + ing.unit + ' ' + ing.name;
-                        chips.appendChild(c);
-                    });
+                const r = data.recipe;
+                document.getElementById('recipe-name').textContent = r.recipe_name;
+                document.getElementById('recipe-cal').textContent = r.estimated_calories;
 
-                    card.classList.add('visible');
-                })
-                .catch(() => {
-                    loader.style.display = 'none';
-                    btnGen.disabled = false;
-                    btnGen.innerHTML = '<span class="spark">✨</span> Generate AI Meal';
-                    errorMsg.textContent = 'Network error — please check your connection and try again.';
-                    errorEl.classList.add('visible');
+                const steps = document.getElementById('steps-list');
+                steps.innerHTML = '';
+                (r.instructions || []).forEach((s, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'step-item';
+                    div.innerHTML = `<span class="step-num">${i + 1}</span><span>${s}</span>`;
+                    steps.appendChild(div);
                 });
-        }
-    </script>
 
-</body>
+                const chips = document.getElementById('chips');
+                chips.innerHTML = '';
+                (r.ingredients_used || []).forEach(ing => {
+                    const span = document.createElement('span');
+                    span.className = 'chip';
+                    span.textContent = `${ing.quantity} ${ing.unit} ${ing.name}`;
+                    chips.appendChild(span);
+                });
 
-</html>
+                card.style.display = 'block';
+            })
+            .catch(() => {
+                loader.style.display = 'none';
+                btnGen.disabled = false;
+                btnGen.innerHTML = '<span>✨</span> Try Again';
+                alert('Chef is unavailable. Please check your connection.');
+            });
+    }
+</script>
+{% endblock %}

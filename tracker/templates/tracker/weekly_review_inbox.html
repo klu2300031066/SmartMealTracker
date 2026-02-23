@@ -1,493 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'tracker/base.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Reviews – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+{% block title %}Weekly Reviews - MyMeal{% endblock %}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-        }
+{% block extra_css %}
+<style>
+    .inbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 
-        body::before {
-            content: '';
-            position: fixed;
-            width: 550px;
-            height: 550px;
-            background: rgba(59, 130, 246, 0.09);
-            border-radius: 50%;
-            filter: blur(140px);
-            top: -140px;
-            right: -90px;
-            pointer-events: none;
-            z-index: 0;
-        }
+    .msg-card {
+        padding: 0;
+        overflow: hidden;
+    }
 
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.85);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    .msg-header {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
+    .msg-sender {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
 
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
+    .sender-avatar {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+        font-size: 0.9rem;
+    }
 
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .sender-info {
+        display: flex;
+        flex-direction: column;
+    }
 
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .sender-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #fff;
+    }
 
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-        }
+    .sender-date {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
 
-        .nav-user strong {
-            color: #6ee7b7;
-        }
+    .msg-content {
+        padding: 1.5rem;
+    }
 
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(110, 231, 183, 0.25);
-            border-radius: 0.5rem;
-            background: rgba(110, 231, 183, 0.07);
-            color: #6ee7b7;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
+    .msg-subject {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+    }
 
-        .btn-back:hover {
-            background: rgba(110, 231, 183, 0.14);
-        }
+    .msg-text {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--text);
+        white-space: pre-wrap;
+    }
 
-        /* ── Shell ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
+    .empty-inbox {
+        text-align: center;
+        padding: 5rem 2rem;
+    }
+</style>
+{% endblock %}
 
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">📬 Weekly Reviews</h1>
+    <p class="subtext">Insights and advice from your health care manager.</p>
+</div>
 
-        .sb-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sb-label:first-child {
-            margin-top: 0;
-        }
-
-        .sb-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-        }
-
-        .sb-link:hover {
-            background: rgba(110, 231, 183, 0.08);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sb-link.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.15));
-            color: #6ee7b7;
-            border: 1px solid rgba(110, 231, 183, 0.2);
-            font-weight: 600;
-        }
-
-        .sb-link .ic {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sb-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sb-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        /* ── Main ── */
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.5rem 2.5rem 5rem;
-            max-width: 900px;
-        }
-
-        /* ── Page header ── */
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.7rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.35rem;
-        }
-
-        /* ── Inbox count banner ── */
-        .inbox-banner {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.75rem 1.1rem;
-            border-radius: 0.75rem;
-            background: rgba(96, 165, 250, 0.08);
-            border: 1px solid rgba(96, 165, 250, 0.2);
-            font-size: 0.84rem;
-            color: #93c5fd;
-            font-weight: 500;
-            margin-bottom: 1.75rem;
-        }
-
-        /* ── Message cards ── */
-        .inbox {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .msg-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            overflow: hidden;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .msg-card:hover {
-            border-color: rgba(96, 165, 250, 0.3);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Header strip */
-        .msg-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .from-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .from-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
-        }
-
-        .from-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #e2e8f0;
-        }
-
-        .from-role {
-            font-size: 0.7rem;
-            color: #475569;
-            margin-top: 0.1rem;
-        }
-
-        .msg-date {
-            font-size: 0.72rem;
-            color: #475569;
-            white-space: nowrap;
-        }
-
-        /* Body */
-        .msg-body {
-            padding: 1.25rem 1.5rem;
-        }
-
-        .msg-subject {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #e2e8f0;
-            margin-bottom: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
-
-        .msg-subject::before {
-            content: '📋';
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .msg-text {
-            font-size: 0.88rem;
-            color: #94a3b8;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        /* Empty state */
-        .empty-inbox {
-            text-align: center;
-            padding: 6rem 2rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            border-radius: 1.2rem;
-        }
-
-        .empty-inbox .ei {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .empty-inbox h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #475569;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-inbox p {
-            font-size: 0.82rem;
-            color: #334155;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sb-link span:not(.ic) {
-                display: none;
-            }
-
-            .sb-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Topbar -->
-    <header class="topbar">
-        <a href="{% url 'dashboard' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🥗</div>
-            <span class="logo-text">MyMeal</span>
-        </a>
-        <div class="topbar-right">
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'dashboard' %}" class="btn-back" id="back-btn">← Dashboard</a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <span class="sb-label">My Space</span>
-            <a href="{% url 'dashboard' %}" class="sb-link" id="nav-dash">
-                <span class="ic">🏠</span><span>My Dashboard</span>
-            </a>
-            <a href="{% url 'track_meals' %}" class="sb-link" id="nav-track">
-                <span class="ic">🍽️</span><span>Track Meals</span>
-            </a>
-            <a href="{% url 'inventory' %}" class="sb-link" id="nav-inv">
-                <span class="ic">📦</span><span>Inventory</span>
-            </a>
-            <div class="sb-divider"></div>
-            <span class="sb-label">Account</span>
-            <a href="{% url 'weekly_review_inbox' %}" class="sb-link active" id="nav-inbox">
-                <span class="ic">📬</span><span>Weekly Reviews</span>
-            </a>
-            <div class="sb-footer">
-                <div class="sb-divider"></div>
-                <a href="{% url 'logout' %}" class="sb-link" id="sidebar-logout-btn">
-                    <span class="ic">🚪</span><span>Log Out</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-
-            <div class="page-header">
-                <h1>📬 Weekly Reviews</h1>
-                <p>Messages and health updates sent to you by your care manager.</p>
-            </div>
-
-            {% if inbox %}
-
-            <div class="inbox-banner">
-                📩 {{ inbox|length }} message{{ inbox|length|pluralize }} from your manager
-            </div>
-
-            <div class="inbox" id="inbox-list">
-                {% for msg in inbox %}
-                <div class="msg-card" id="msg-card-{{ msg.id }}">
-
-                    <div class="msg-header">
-                        <div class="from-row">
-                            <div class="from-avatar">{{ msg.sender.username|slice:":1" }}</div>
-                            <div>
-                                <div class="from-name">{{ msg.sender.username|capfirst }}</div>
-                                <div class="from-role">🛡️ Care Manager</div>
-                            </div>
-                        </div>
-                        <span class="msg-date">{{ msg.created_at|date:"d M Y, H:i" }}</span>
-                    </div>
-
-                    <div class="msg-body">
-                        <div class="msg-subject">{{ msg.subject }}</div>
-                        <div class="msg-text">{{ msg.body }}</div>
-                    </div>
-
+<div class="inbox-list">
+    {% for msg in inbox %}
+    <div class="card msg-card">
+        <div class="msg-header">
+            <div class="msg-sender">
+                <div class="sender-avatar">{{ msg.sender.username|slice:":1"|upper }}</div>
+                <div class="sender-info">
+                    <span class="sender-name">{{ msg.sender.username|capfirst }} (Manager)</span>
+                    <span class="sender-date">{{ msg.created_at|date:"D, d M Y - H:i" }}</span>
                 </div>
-                {% endfor %}
             </div>
-
-            {% else %}
-
-            <div class="empty-inbox">
-                <div class="ei">📭</div>
-                <h3>No Reviews Yet</h3>
-                <p>Your care manager hasn't sent any messages yet.<br>Check back after your next scheduled review.</p>
-            </div>
-
+            {% if not msg.is_read %}
+            <span class="badge-count" style="position: static; padding: 0.25rem 0.6rem;">New</span>
             {% endif %}
-
-        </main>
+        </div>
+        <div class="msg-content">
+            <h3 class="msg-subject">{{ msg.subject }}</h3>
+            <div class="msg-text">{{ msg.body }}</div>
+        </div>
     </div>
+    {% empty %}
+    <div class="card empty-inbox">
+        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📭</span>
+        <h3 style="color: var(--muted);">No messages yet</h3>
+        <p style="color: var(--muted); font-size: 0.85rem;">Your manager will send your weekly review here.</p>
+    </div>
+    {% endfor %}
+</div>
 
-</body>
-
-</html>
+<div style="margin-top: 2rem;">
+    <a href="{% url 'dashboard' %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">← Back to
+        Dashboard</a>
+</div>
+{% endblock %}

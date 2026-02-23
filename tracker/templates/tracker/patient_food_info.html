@@ -1,1012 +1,342 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Food Info – MyMeal Care</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            width: 550px;
-            height: 550px;
-            background: rgba(16, 185, 129, 0.09);
-            border-radius: 50%;
-            filter: blur(140px);
-            top: -140px;
-            left: -90px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            width: 480px;
-            height: 480px;
-            background: rgba(167, 139, 250, 0.08);
-            border-radius: 50%;
-            filter: blur(140px);
-            bottom: -110px;
-            right: -80px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.85);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #6ee7b7, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .badge-manager {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.7rem;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(110, 231, 183, 0.3);
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #6ee7b7;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #6ee7b7;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            transform: translateY(-1px);
-        }
-
-        /* ── Shell ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-            border: none;
-            background: transparent;
-            width: 100%;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(110, 231, 183, 0.08);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.25), rgba(59, 130, 246, 0.15));
-            color: #6ee7b7;
-            border: 1px solid rgba(110, 231, 183, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        /* ── Main ── */
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 5rem;
-        }
-
-        /* ── Page header ── */
-        .page-header {
-            margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.65rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.3rem;
-        }
-
-        /* ── Resident picker ── */
-        .picker-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            padding: 1.5rem 2rem;
-            backdrop-filter: blur(16px);
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .picker-label {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            white-space: nowrap;
-        }
-
-        .picker-select {
-            flex: 1;
-            min-width: 200px;
-            max-width: 380px;
-            padding: 0.65rem 1rem;
-            background: rgba(10, 8, 35, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 0.65rem;
-            color: #e2e8f0;
-            font-family: inherit;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: border-color 0.2s;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.85rem center;
-            padding-right: 2.5rem;
-        }
-
-        .picker-select:focus {
-            outline: none;
-            border-color: rgba(110, 231, 183, 0.45);
-        }
-
-        .picker-select option {
-            background: #1e1b4b;
-            color: #e2e8f0;
-        }
-
-        .btn-view {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.65rem 1.4rem;
-            background: linear-gradient(90deg, #6d28d9, #3b82f6);
-            border: none;
-            border-radius: 0.65rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 4px 14px rgba(109, 40, 217, 0.35);
-        }
-
-        .btn-view:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.45);
-        }
-
-        /* ── Resident header card ── */
-        .resident-header {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            border-radius: 1.2rem;
-            padding: 1.25rem 1.75rem;
-            margin-bottom: 1.75rem;
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .res-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #3b82f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #fff;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            box-shadow: 0 0 18px rgba(124, 58, 237, 0.35);
-        }
-
-        .res-name {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #e2e8f0;
-        }
-
-        .res-sub {
-            font-size: 0.78rem;
-            color: #64748b;
-            margin-top: 0.15rem;
-        }
-
-        /* ── Stats strip ── */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.1rem;
-            padding: 1.2rem 1.4rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            transition: transform 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-icon {
-            font-size: 1.5rem;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .stat-value.purple {
-            color: #a78bfa;
-        }
-
-        .stat-value.green {
-            color: #6ee7b7;
-        }
-
-        .stat-value.blue {
-            color: #60a5fa;
-        }
-
-        .stat-value.amber {
-            color: #fbbf24;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #475569;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        /* ── Charts row ── */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.75rem;
-        }
-
-        .chart-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            padding: 1.5rem 1.75rem;
-            backdrop-filter: blur(14px);
-        }
-
-        .chart-card h3 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #94a3b8;
-            margin-bottom: 1.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .chart-wrap {
-            position: relative;
-            height: 240px;
-        }
-
-        /* ── Bottom row ── */
-        .bottom-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        /* ── Top foods table ── */
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-            padding: 1.5rem 1.75rem;
-        }
-
-        .info-card h3 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #94a3b8;
-            margin-bottom: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .food-row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .food-row:last-child {
-            border-bottom: none;
-        }
-
-        .food-rank {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: rgba(167, 139, 250, 0.15);
-            border: 1px solid rgba(167, 139, 250, 0.25);
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: #a78bfa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .food-name {
-            flex: 1;
-            font-size: 0.84rem;
-            font-weight: 500;
-            color: #cbd5e1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .food-count {
-            font-size: 0.75rem;
-            color: #64748b;
-            white-space: nowrap;
-        }
-
-        /* ── Recent meals table ── */
-        .meal-log {
-            overflow-y: auto;
-            max-height: 320px;
-        }
-
-        .meal-entry {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .meal-entry:last-child {
-            border-bottom: none;
-        }
-
-        .cat-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .cat-dot.breakfast {
-            background: #f59e0b;
-        }
-
-        .cat-dot.lunch {
-            background: #10b981;
-        }
-
-        .cat-dot.dinner {
-            background: #6366f1;
-        }
-
-        .cat-dot.snacks {
-            background: #f87171;
-        }
-
-        .meal-nm {
-            flex: 1;
-            font-size: 0.82rem;
-            color: #cbd5e1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .meal-cal {
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #a78bfa;
-            white-space: nowrap;
-        }
-
-        .meal-date {
-            font-size: 0.7rem;
-            color: #475569;
-            white-space: nowrap;
-        }
-
-        /* ── No data message ── */
-        .no-data {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #334155;
-        }
-
-        .no-data .nd-icon {
-            font-size: 3rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .no-data h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #475569;
-            margin-bottom: 0.35rem;
-        }
-
-        .no-data p {
-            font-size: 0.82rem;
-        }
-
-        @media (max-width: 900px) {
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-
-            .bottom-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Topbar -->
-    <header class="topbar">
-        <a href="{% url 'manager_dashboard' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🏥</div>
-            <span class="logo-text">MyMeal — Care</span>
-        </a>
-        <div class="topbar-right">
-            <span class="badge-manager">🛡️ Manager</span>
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Log Out
-            </a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-
-            <span class="sidebar-section-label">Manager</span>
-
-            <a href="{% url 'manager_dashboard' %}" class="sidebar-link" id="nav-panel">
-                <span class="icon">🏥</span>
-                <span>Manager Panel</span>
-            </a>
-
-            <a href="{% url 'patient_food_info' %}" class="sidebar-link active" id="nav-food-info">
-                <span class="icon">📊</span>
-                <span>Patient Food Info</span>
-            </a>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link" id="sidebar-logout-btn">
-                    <span class="icon">🚪</span>
-                    <span>Log Out</span>
-                </a>
-            </div>
-
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-
-            <div class="page-header">
-                <h1>📊 Patient Food Info</h1>
-                <p>Select a resident to view their calorie intake, meal categories, and food history.</p>
-            </div>
-
-            <!-- Resident Picker -->
-            <form method="GET" action="{% url 'patient_food_info' %}">
-                <div class="picker-card">
-                    <span class="picker-label">👤 Select Resident</span>
-                    <select name="resident" class="picker-select" id="resident-select">
-                        <option value="">— Choose a patient —</option>
-                        {% for r in residents %}
-                        <option value="{{ r.id }}" {% if selected_resident and selected_resident.id == r.id %}selected{% endif %}>
-                            {{ r.username }}{% if r.email %} ({{ r.email }}){% endif %}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn-view" id="btn-view-stats">📊 View Stats</button>
-                </div>
-            </form>
-
-            {% if selected_resident and stats %}
-
-            <!-- Resident header -->
-            <div class="resident-header">
-                <div class="res-avatar">{{ selected_resident.username|slice:":1" }}</div>
-                <div>
-                    <div class="res-name">{{ selected_resident.username }}</div>
-                    <div class="res-sub">{{ selected_resident.email|default:"No email" }} · Joined {{
-                        selected_resident.date_joined|date:"d M Y" }}</div>
-                </div>
-            </div>
-
-            <!-- Stats strip -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <span class="stat-icon">🔥</span>
-                    <span class="stat-value purple">{{ stats.avg_daily_cal }}</span>
-                    <span class="stat-label">Avg Calories / Day</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon">📅</span>
-                    <span class="stat-value green">{{ stats.total_cal_7d }}</span>
-                    <span class="stat-label">Total kcal (7 Days)</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon">🍽️</span>
-                    <span class="stat-value blue">{{ stats.total_meals_7d }}</span>
-                    <span class="stat-label">Meals Logged (7 Days)</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-icon">📆</span>
-                    <span class="stat-value amber">{{ stats.most_active_day }}</span>
-                    <span class="stat-label">Highest Calorie Day</span>
-                </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="charts-row">
-                <div class="chart-card">
-                    <h3>🔥 Daily Calorie Intake — Last 7 Days</h3>
-                    <div class="chart-wrap">
-                        <canvas id="calorieChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3>🍽️ Meal Category Breakdown</h3>
-                    <div class="chart-wrap">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom: Top foods + Recent meal log -->
-            <div class="bottom-row">
-
-                <div class="info-card">
-                    <h3>⭐ Most Consumed Foods</h3>
-                    {% if stats.top_foods %}
-                    {% for food in stats.top_foods %}
-                    <div class="food-row">
-                        <div class="food-rank">{{ forloop.counter }}</div>
-                        <div class="food-name" title="{{ food.name }}">{{ food.name|capfirst }}</div>
-                        <div class="food-count">{{ food.count }}× · {{ food.total_cal }} kcal</div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <p style="color:#475569;font-size:0.82rem;text-align:center;padding:2rem 0;">No meal history yet.
-                    </p>
-                    {% endif %}
-                </div>
-
-                <div class="info-card">
-                    <h3>📋 Recent Meal Log (7 Days)</h3>
-                    <div class="meal-log">
-                        {% if stats.recent_meals %}
-                        {% for meal in stats.recent_meals %}
-                        <div class="meal-entry">
-                            <div class="cat-dot {{ meal.category }}"></div>
-                            <div class="meal-nm" title="{{ meal.name }}">{{ meal.name|capfirst }}</div>
-                            <div class="meal-cal">{{ meal.calories }} kcal</div>
-                            <div class="meal-date">{{ meal.meal_date|date:"d M" }}</div>
-                        </div>
-                        {% endfor %}
-                        {% else %}
-                        <p style="color:#475569;font-size:0.82rem;text-align:center;padding:2rem 0;">No meals logged in
-                            the last 7 days.</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-            </div>
-
-
-            <!-- ── Allergy & Medical Profile Card ── -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.75rem;">
-
-                <!-- Allergy Flags -->
-                <div class="info-card">
-                    <h3>&#x26A0;&#xFE0F; Allergy Flags</h3>
-                    {% if res_allergies %}
-                    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.25rem;">
-                        {% for allergy in res_allergies %}
-                        <span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.8rem;border-radius:999px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;font-size:0.78rem;font-weight:700;">
-                            &#x1F6A8; {{ allergy.keyword|capfirst }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div style="display:flex;align-items:center;gap:0.55rem;padding:0.85rem 1rem;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:0.75rem;margin-top:0.25rem;">
-                        <span style="font-size:1.1rem;">&#x2705;</span>
-                        <span style="font-size:0.82rem;color:#6ee7b7;font-weight:500;">No allergy flags set by manager.</span>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Medical Stats -->
-                <div class="info-card">
-                    <h3>&#x1F4CB; Medical Profile</h3>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.25rem;">
-                        <div style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.18);border-radius:0.75rem;padding:0.85rem 1rem;">
-                            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;margin-bottom:0.25rem;">Weight</div>
-                            <div style="font-size:1.3rem;font-weight:800;color:#a78bfa;">
-                                {% if res_profile.weight_kg %}{{ res_profile.weight_kg }} <span style="font-size:0.75rem;font-weight:500;color:#64748b;">kg</span>{% else %}<span style="color:#334155;font-size:0.9rem;">Not set</span>{% endif %}
-                            </div>
-                        </div>
-                        <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.18);border-radius:0.75rem;padding:0.85rem 1rem;">
-                            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;margin-bottom:0.25rem;">Height</div>
-                            <div style="font-size:1.3rem;font-weight:800;color:#60a5fa;">
-                                {% if res_profile.height_cm %}{{ res_profile.height_cm }} <span style="font-size:0.75rem;font-weight:500;color:#64748b;">cm</span>{% else %}<span style="color:#334155;font-size:0.9rem;">Not set</span>{% endif %}
-                            </div>
-                        </div>
-                        {% if res_profile.weight_kg and res_profile.height_cm %}
-                        <div style="grid-column:1/-1;background:rgba(110,231,183,0.07);border:1px solid rgba(110,231,183,0.18);border-radius:0.75rem;padding:0.85rem 1rem;" id="bmi-block">
-                            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;margin-bottom:0.25rem;">BMI</div>
-                            <div style="font-size:1.3rem;font-weight:800;" id="bmi-val"
-                                data-w="{{ res_profile.weight_kg }}"
-                                data-h="{{ res_profile.height_cm }}">—</div>
-                            <div style="font-size:0.75rem;font-weight:600;margin-top:0.2rem;" id="bmi-cat"></div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% if res_profile.medical_notes %}
-                    <div style="margin-top:0.85rem;padding:0.85rem 1rem;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.18);border-radius:0.75rem;">
-                        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#475569;margin-bottom:0.35rem;">&#x1F4CB; Medical Notes</div>
-                        <div style="font-size:0.82rem;color:#cbd5e1;line-height:1.65;white-space:pre-wrap;">{{ res_profile.medical_notes }}</div>
-                    </div>
-                    {% endif %}
-                </div>
-
-            </div>
-
-            {% elif selected_resident %}
-            <!-- Selected but no data -->
-            <div class="no-data">
-                <div class="nd-icon">🌿</div>
-                <h3>No Meal Data</h3>
-                <p>{{ selected_resident.username }} hasn't logged any saved meals yet.</p>
-            </div>
-
-            {% else %}
-            <!-- Nothing selected -->
-            <div class="no-data">
-                <div class="nd-icon">👆</div>
-                <h3>Select a Patient Above</h3>
-                <p>Choose a resident from the dropdown to see their food and calorie statistics.</p>
-            </div>
-            {% endif %}
-
-        </main>
+{% extends 'tracker/base.html' %}
+
+{% block title %}Patient Food Analytics - MyMeal Care{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .picker-card {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+    }
+
+    .picker-select {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        color: #fff;
+        font-family: inherit;
+        min-width: 200px;
+    }
+
+    .btn-view {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+        background: var(--secondary);
+        transform: translateY(-1px);
+    }
+
+    .stats-stripe {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle at top right, var(--stat-color, var(--primary)), transparent 70%);
+        opacity: 0.1;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 1rem;
+        background: rgba(var(--stat-rgba), 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--stat-color);
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 2rem;
+    }
+
+    @media (max-width: 1100px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .table-container {
+        padding: 1.5rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .foods-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .food-item {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .food-name {
+        font-weight: 700;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+
+    .food-meta {
+        font-size: 0.75rem;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .badge-cal {
+        padding: 0.25rem 0.6rem;
+        background: rgba(167, 139, 250, 0.1);
+        color: var(--accent);
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .btn-pdf-outline {
+        padding: 0.6rem 1.25rem;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+        background: rgba(255, 193, 7, 0.05);
+        color: #ffc107;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+    .btn-pdf-outline:hover {
+        background: rgba(255, 193, 7, 0.15);
+        border-color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-header">
+    <div class="welcome-section" style="margin-bottom: 0;">
+        <h1 class="heading-xl">📊 Clinical Insights</h1>
+        <p class="subtext">Resident dietary trends and nutritional oversight.</p>
     </div>
 
-    {% if selected_resident and stats %}
-    <script>
-        // ── Calorie Bar Chart ──
-        const calorieCtx = document.getElementById('calorieChart').getContext('2d');
-        new Chart(calorieCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ stats.day_labels | safe }},
-            datasets: [{
-                label: 'Calories (kcal)',
-                data: {{ stats.day_calories | safe }},
-            backgroundColor: 'rgba(167,139,250,0.55)',
-            borderColor: 'rgba(167,139,250,0.9)',
-            borderWidth: 2,
-            borderRadius: 7,
-            borderSkipped: false,
-                }]
-            },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y} kcal`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#64748b', font: { size: 11 } }
-                },
-                y: {
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#64748b', font: { size: 11 } },
-                    beginAtZero: true
-                }
-            }
-        }
-        });
+    <div class="picker-card">
+        <form method="GET" style="display: flex; gap: 0.75rem; align-items: center;">
+            <select name="resident" class="picker-select">
+                <option value="">— Select Resident —</option>
+                {% for r in residents %}
+                <option value="{{ r.id }}" {% if r.id|slugify == selected_resident_id %}selected{% endif %}>
+                    {{ r.username|capfirst }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-view">Filter</button>
+        </form>
+    </div>
+</div>
 
-        // ── Category Doughnut Chart ──
-        const catCtx = document.getElementById('categoryChart').getContext('2d');
-        new Chart(catCtx, {
-            type: 'doughnut',
-            data: {
-                labels: {{ stats.category_labels | safe }},
-            datasets: [{
-                data: {{ stats.category_data | safe }},
-            backgroundColor: [
-                'rgba(251,191,36,0.75)',
-                'rgba(16,185,129,0.75)',
-                'rgba(99,102,241,0.75)',
-                'rgba(248,113,113,0.75)'
-            ],
-            borderColor: [
-                'rgba(251,191,36,1)',
-                'rgba(16,185,129,1)',
-                'rgba(99,102,241,1)',
-                'rgba(248,113,113,1)'
-            ],
-            borderWidth: 1.5,
-            hoverOffset: 6
-                }]
-            },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '65%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { color: '#94a3b8', font: { size: 11 }, padding: 14, boxWidth: 12 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.label}: ${ctx.parsed} kcal`
-                    }
-                }
-            }
-        }
-        });
-    
-        // ── BMI Calculator ──
-        (function() {
-            var el  = document.getElementById('bmi-val');
-            var cat = document.getElementById('bmi-cat');
-            if (!el || !cat) return;
-            var w = parseFloat(el.getAttribute('data-w'));
-            var h = parseFloat(el.getAttribute('data-h'));
-            if (!w || !h || h <= 0) return;
-            var bmi = w / Math.pow(h / 100, 2);
-            var label = '', color = '#60a5fa';
-            if (bmi < 18.5)    { label = 'Underweight';   color = '#60a5fa'; }
-            else if (bmi < 25) { label = 'Normal weight';  color = '#6ee7b7'; }
-            else if (bmi < 30) { label = 'Overweight';     color = '#fbbf24'; }
-            else               { label = 'Obese';          color = '#f87171'; }
-            el.textContent  = bmi.toFixed(1);
-            el.style.color  = color;
-            cat.textContent = label;
-            cat.style.color = color;
-        })();
-    </script>
-    {% endif %}
+{% if selected_resident and stats %}
+<!-- Stats Stripe -->
+<div class="stats-stripe">
+    <div class="card stat-card" style="--stat-color: var(--accent); --stat-rgba: 167, 139, 250;">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.avg_daily_cal|floatformat:0 }}</span>
+            <span class="stat-label">Avg Daily kcal</span>
+        </div>
+    </div>
+    <div class="card stat-card" style="--stat-color: var(--success); --stat-rgba: 16, 185, 129;">
+        <div class="stat-icon">🍲</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.total_meals_7d }}</span>
+            <span class="stat-label">Meals (7 Days)</span>
+        </div>
+    </div>
+    <div class="card stat-card" style="--stat-color: #fca5a5; --stat-rgba: 239, 68, 68;">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ res_allergies.count }}</span>
+            <span class="stat-label">Safety Flags</span>
+        </div>
+    </div>
+    <div class="card stat-card" style="--stat-color: var(--secondary); --stat-rgba: 59, 130, 246;">
+        <div class="stat-icon">⚖️</div>
+        <div class="stat-info">
+            <span class="stat-value">{{ res_profile.bmi|floatformat:1|default:"--" }}</span>
+            <span class="stat-label">Clinical BMI</span>
+        </div>
+    </div>
+</div>
 
-</body>
+<div class="content-grid">
+    <!-- Log Table -->
+    <div class="card table-container">
+        <div class="section-header">
+            <h2 class="section-title">🕒 Recent Activity Log</h2>
+            <a href="{% url 'export_resident_pdf' selected_resident.id %}" class="btn-pdf-outline">
+                PDF Report
+            </a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="residents-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Meal Name</th>
+                        <th style="text-align: right;">Energy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meal in stats.recent_meals %}
+                    <tr>
+                        <td style="font-size: 0.8rem; color: var(--muted);">{{ meal.meal_date|date:"D, d M" }}</td>
+                        <td>
+                            <span
+                                style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--secondary);">
+                                {{ meal.category }}
+                            </span>
+                        </td>
+                        <td style="color: #fff; font-weight: 600;">{{ meal.meal_name }}</td>
+                        <td style="text-align: right;">
+                            <span class="badge-cal">{{ meal.calories }} kcal</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 3rem; color: var(--muted);">No meals
+                            recorded in the last 7 days.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-</html>
+    <!-- Side Analysis -->
+    <div class="card" style="padding: 1.5rem;">
+        <h2 class="section-title" style="margin-bottom: 1.5rem;">🍎 Most Recorded Foods</h2>
+        <div class="foods-list">
+            {% for food in stats.top_foods %}
+            <div class="food-item">
+                <div style="display: flex; flex-direction: column;">
+                    <span class="food-name">{{ food.name|truncatechars:20 }}</span>
+                    <span class="food-meta">Ordered {{ food.count }} times</span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="display: block; font-size: 0.8rem; font-weight: 700; color: #fff;">{{ food.total_cal
+                        }}</span>
+                    <span style="font-size: 0.6rem; color: var(--muted); text-transform: uppercase;">Total kcal</span>
+                </div>
+            </div>
+            {% empty %}
+            <p style="text-align: center; padding: 2rem; color: var(--muted); font-size: 0.9rem;">
+                Insufficient data for top foods analysis.
+            </p>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+            <p style="font-size: 0.75rem; color: var(--muted); line-height: 1.6;">
+                <strong>Clinical Note:</strong> Insights are generated based on user-reported food logs from the
+                previous 7 days.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card" style="text-align: center; padding: 8rem 2rem; border: 1px dashed var(--border);">
+    <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.5;">🔍</div>
+    <h2 style="color: #fff; font-weight: 800; margin-bottom: 0.5rem;">Ready for Audit</h2>
+    <p style="color: var(--muted); max-width: 400px; margin: 0 auto;">Select a resident from the dropdown to start your
+        clinical review of their nutritional habits.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Charts disabled as requested -->
+{% endblock %}

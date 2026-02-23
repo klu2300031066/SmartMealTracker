@@ -1,0 +1,94 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}User Inventory Oversight - MyMeal Care{% endblock %}
+
+{% block extra_css %}
+<style>
+    .resident-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .resident-card {
+        padding: 1.5rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.2s;
+    }
+
+    .resident-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .res-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+        font-size: 1.25rem;
+    }
+
+    .res-details {
+        flex: 1;
+    }
+
+    .res-name {
+        display: block;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.25rem;
+    }
+
+    .res-email {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--muted);
+    }
+
+    .view-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">📦 Inventory Oversight</h1>
+    <p class="subtext">Select a resident to audit their current pantry levels and food stock.</p>
+</div>
+
+<div class="resident-grid">
+    {% for resident in residents %}
+    <a href="{% url 'manager_view_resident_inventory' resident.id %}" class="card resident-card">
+        <div class="res-avatar">{{ resident.username|slice:":1"|upper }}</div>
+        <div class="res-details">
+            <span class="res-name">{{ resident.username|capfirst }}</span>
+            <span class="res-email">{{ resident.email|default:"No email" }}</span>
+            <span class="view-badge">Audit Inventory &rarr;</span>
+        </div>
+    </a>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 5rem 2rem;">
+        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📦</span>
+        <h3 style="color: var(--muted);">No Residents Found</h3>
+        <p style="color: var(--muted); font-size: 0.9rem;">There are no registered residents to audit at this time.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

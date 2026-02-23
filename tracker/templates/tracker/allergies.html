@@ -1,0 +1,139 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}My Profile - MyMeal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .profile-stat {
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .allergy-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .allergy-pill {
+        padding: 0.6rem 1.25rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .info-banner {
+        padding: 1.5rem;
+        background: rgba(124, 58, 237, 0.05);
+        border: 1px solid rgba(124, 58, 237, 0.1);
+        border-radius: 1.25rem;
+        margin-bottom: 2.5rem;
+        display: flex;
+        gap: 1.25rem;
+        align-items: center;
+    }
+
+    @media (max-width: 768px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">👤 User Profile</h1>
+    <p class="subtext">Your personal information and clinical health records.</p>
+</div>
+
+<div class="info-banner">
+    <div style="font-size: 2.5rem;">🆔</div>
+    <div>
+        <h2 style="font-size: 1.25rem; color: #fff; margin-bottom: 0.25rem;">Account Information</h2>
+        <p style="font-size: 0.9rem; color: var(--muted);">Managed by MyMeal Core Care Team</p>
+    </div>
+</div>
+
+<div class="profile-grid">
+    <!-- Basic Info -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 1.5rem;">Physical Measurements</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="profile-stat">
+                <span class="stat-label">Full Name / Username</span>
+                <span class="stat-value">{{ request.user.username|capfirst }}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="profile-stat">
+                    <span class="stat-label">Height</span>
+                    <span class="stat-value">{% if profile.height_cm %}{{ profile.height_cm }} cm{% else %}--{% endif %}</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-label">Weight</span>
+                    <span class="stat-value">{% if profile.weight_kg %}{{ profile.weight_kg }} kg{% else %}--{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allergies (Read Only) -->
+    <div class="card">
+        <h3 style="font-size: 1.1rem; color: #fca5a5; margin-bottom: 1rem;">⚠️ Active Allergy Safelists</h3>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6;">
+            The following allergens are currently flagged in your medical profile. To request changes or add new
+            protections, please contact your care manager.
+        </p>
+
+        <div class="allergy-grid">
+            {% for allergy in allergies %}
+            <div class="allergy-pill">
+                {{ allergy.keyword|capfirst }}
+            </div>
+            {% empty %}
+            <div
+                style="width: 100%; text-align: center; color: var(--muted); padding: 3rem; background: rgba(255,255,255,0.02); border-radius: 1rem;">
+                <span style="display: block; font-size: 2rem; margin-bottom: 0.5rem;">✅</span>
+                No allergy restrictions found in your profile.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div
+    style="margin-top: 3rem; padding: 2rem; background: rgba(255,255,255,0.02); border-radius: 1.5rem; border: 1px dashed var(--border); text-align: center;">
+    <p style="font-size: 0.9rem; color: var(--muted);">
+        <strong>Clinical Note:</strong> These details are synchronized with the central care management system.
+        Measurements are updated during your scheduled health reviews.
+    </p>
+</div>
+{% endblock %}

@@ -1,1475 +1,233 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MyMeal dashboard – log and track your daily meals and calories.">
-    <title>Dashboard – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(130px);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        body::before {
-            width: 500px;
-            height: 500px;
-            background: rgba(124, 58, 237, 0.15);
-            top: -120px;
-            left: -80px;
-        }
-
-        body::after {
-            width: 450px;
-            height: 450px;
-            background: rgba(59, 130, 246, 0.12);
-            bottom: -100px;
-            right: -80px;
-        }
-
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #7c3aed, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(124, 58, 237, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #c4b5fd;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            border-color: rgba(248, 113, 113, 0.55);
-            transform: translateY(-1px);
-        }
-
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(167, 139, 250, 0.1);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(124, 58, 237, 0.3), rgba(59, 130, 246, 0.2));
-            color: #c4b5fd;
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 4rem;
-            min-height: calc(100vh - 62px);
-        }
-
-        .page-header {
-            margin-bottom: 1.75rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.55rem;
-            font-weight: 800;
-            letter-spacing: -0.4px;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
-        .content-panel {
-            display: none;
-        }
-
-        .content-panel.active {
-            display: block;
-            animation: fadeUp 0.28s ease both;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.2rem;
-
-            padding: 1.75rem 2rem;
-            max-width: 640px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
-            margin-bottom: 1.5rem;
-        }
-
-        .card h2 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #c4b5fd;
-            margin-bottom: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .form-group label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
-        }
-
-        .form-group input {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.6rem;
-            padding: 0.62rem 0.85rem;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.92rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-group input::placeholder {
-            color: #334155;
-        }
-
-        .form-group input:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.18);
-        }
-
-        .btn-submit {
-            grid-column: 1 / -1;
-            margin-top: 0.15rem;
-            padding: 0.7rem;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-            border: none;
-            border-radius: 0.6rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.93rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.38);
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.52);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .msg-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            max-width: 640px;
-            margin-bottom: 1.2rem;
-            animation: slideIn 0.35s ease both;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        .total-banner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.15));
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            border-radius: 0.7rem;
-            padding: 0.75rem 1.1rem;
-            margin-bottom: 1.1rem;
-            font-size: 0.85rem;
-        }
-
-        .total-banner .lbl {
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .total-banner .val {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #a78bfa;
-        }
-
-        .meal-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-
-        .meal-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 0.7rem;
-            padding: 0.75rem 1rem;
-            transition: background 0.2s, transform 0.15s;
-            animation: slideIn 0.3s ease both;
-        }
-
-        .meal-item:hover {
-            background: rgba(255, 255, 255, 0.09);
-            transform: translateX(4px);
-        }
-
-        .meal-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex: 1;
-        }
-
-        .meal-name {
-            font-size: 0.93rem;
-            font-weight: 500;
-        }
-
-        .meal-calories {
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 0.15rem 0.6rem;
-            border-radius: 999px;
-            background: rgba(167, 139, 250, 0.13);
-            color: #c4b5fd;
-            border: 1px solid rgba(167, 139, 250, 0.25);
-        }
-
-        .btn-delete {
-            background: transparent;
-            border: 1px solid rgba(248, 113, 113, 0.25);
-            border-radius: 0.45rem;
-            color: #fca5a5;
-            padding: 0.28rem 0.6rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            flex-shrink: 0;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-
-        .btn-delete:hover {
-            background: rgba(248, 113, 113, 0.14);
-            border-color: rgba(248, 113, 113, 0.55);
-            transform: scale(1.06);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 1.75rem 0 0.5rem;
-            color: #475569;
-            font-size: 0.85rem;
-        }
-
-        .empty-state span {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 0.4rem;
-        }
-
-        .coming-soon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            padding: 4rem 2rem;
-            color: #475569;
-            text-align: center;
-        }
-
-        .coming-soon .cs-icon {
-            font-size: 3rem;
-        }
-
-        .coming-soon h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #64748b;
-        }
-
-        .coming-soon p {
-            font-size: 0.85rem;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .sidebar-divider {
-                margin: 0.75rem 0.2rem;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-
-            .nav-user {
-                display: none;
-            }
-        }
-
-        /* ── Allergy Manager ──────────────────────────────────────── */
-
-        .allergy-add-row {
-            display: flex;
-            gap: 0.65rem;
-            align-items: center;
-            margin-bottom: 1.25rem;
-        }
-
-        .allergy-add-row input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 0.6rem;
-            padding: 0.6rem 0.9rem;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .allergy-add-row input::placeholder {
-            color: #334155;
-        }
-
-        .allergy-add-row input:focus {
-            border-color: #f87171;
-            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
-        }
-
-        .btn-add-allergy {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 0.6rem;
-            background: linear-gradient(90deg, #ef4444, #dc2626);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
-            transition: transform 0.15s, box-shadow 0.15s;
-            white-space: nowrap;
-        }
-
-        .btn-add-allergy:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(239, 68, 68, 0.5);
-        }
-
-        .allergy-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-        }
-
-        .allergy-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 999px;
-            padding: 0.35rem 0.85rem 0.35rem 0.7rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #fca5a5;
-            animation: slideIn 0.25s ease both;
-        }
-
-        .btn-del-allergy {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(239, 68, 68, 0.25);
-            color: #fca5a5;
-            font-size: 0.8rem;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 900;
-            transition: background 0.2s, transform 0.15s;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .btn-del-allergy:hover {
-            background: rgba(239, 68, 68, 0.5);
-            transform: scale(1.15);
-        }
-
-        .allergy-empty {
-            text-align: center;
-            padding: 1.25rem 0 0.5rem;
-            color: #475569;
-            font-size: 0.85rem;
-        }
-
-        .allergy-empty span {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 0.35rem;
-        }
-
-        .allergy-info-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.6rem;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 0.7rem;
-            padding: 0.75rem 1rem;
-            font-size: 0.8rem;
-            color: #fca5a5;
-            margin-bottom: 1.25rem;
-            line-height: 1.55;
-        }
-
-        /* ── AI Meal Button ── */
-        .btn-ai {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.7rem 1.4rem;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            border: none;
-            border-radius: 0.75rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.93rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
-            transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
-            margin-bottom: 1.5rem;
-            max-width: 640px;
-            width: 100%;
-            justify-content: center;
-            letter-spacing: 0.01em;
-        }
-
-        .btn-ai:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 26px rgba(124, 58, 237, 0.6);
-        }
-
-        .btn-ai:active {
-            transform: translateY(0);
-        }
-
-        .btn-ai:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* ── AI Modal ── */
-        .ai-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.72);
-            backdrop-filter: blur(8px);
-            z-index: 999;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .ai-modal-overlay.open {
-            display: flex;
-            animation: fadeIn 0.22s ease both;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .ai-modal {
-            background: linear-gradient(145deg, #1a1535, #0f0c29);
-            border: 1px solid rgba(124, 58, 237, 0.35);
-            border-radius: 1.4rem;
-            padding: 2rem 2.25rem 1.75rem;
-            max-width: 560px;
-            width: 100%;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(124, 58, 237, 0.15);
-            animation: slideUp 0.28s cubic-bezier(.2, .9, .4, 1) both;
-            position: relative;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(28px) scale(0.97);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .ai-modal-close {
-            position: absolute;
-            top: 1.1rem;
-            right: 1.3rem;
-            background: transparent;
-            border: none;
-            color: #475569;
-            font-size: 1.4rem;
-            cursor: pointer;
-            line-height: 1;
-            transition: color 0.15s;
-        }
-
-        .ai-modal-close:hover {
-            color: #e2e8f0;
-        }
-
-        .ai-modal h2 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #06b6d4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.25rem;
-        }
-
-        .ai-modal .ai-sub {
-            font-size: 0.78rem;
-            color: #475569;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Loader shimmer */
-        .ai-loader {
-            text-align: center;
-            padding: 2rem 0;
-        }
-
-        .ai-loader .spinner {
-            display: inline-block;
-            width: 42px;
-            height: 42px;
-            border: 3px solid rgba(124, 58, 237, 0.2);
-            border-top-color: #7c3aed;
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .ai-loader p {
-            color: #64748b;
-            font-size: 0.85rem;
-        }
-
-        /* Recipe content */
-        .ai-recipe {
-            display: none;
-        }
-
-        .ai-recipe.visible {
-            display: block;
-        }
-
-        .ai-recipe-name {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: #e2e8f0;
-            margin-bottom: 0.3rem;
-        }
-
-        .ai-cal-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: rgba(167, 139, 250, 0.14);
-            border: 1px solid rgba(167, 139, 250, 0.28);
-            border-radius: 999px;
-            padding: 0.2rem 0.75rem;
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #c4b5fd;
-            margin-bottom: 1.1rem;
-        }
-
-        .ai-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            margin-bottom: 0.5rem;
-        }
-
-        .ai-steps {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
-            margin-bottom: 1.2rem;
-        }
-
-        .ai-steps li {
-            display: flex;
-            gap: 0.65rem;
-            align-items: flex-start;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 0.65rem;
-            padding: 0.65rem 0.85rem;
-            font-size: 0.86rem;
-            color: #cbd5e1;
-            line-height: 1.55;
-        }
-
-        .ai-steps li .step-num {
-            flex-shrink: 0;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.68rem;
-            font-weight: 800;
-            color: #fff;
-            margin-top: 1px;
-        }
-
-        .ai-ingr-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.45rem;
-            margin-bottom: 1.4rem;
-        }
-
-        .ai-chip {
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.25);
-            border-radius: 999px;
-            padding: 0.2rem 0.7rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #67e8f9;
-        }
-
-        .btn-cook {
-            width: 100%;
-            padding: 0.85rem;
-            background: linear-gradient(90deg, #10b981, #059669);
-            border: none;
-            border-radius: 0.75rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
-            transition: transform 0.15s, box-shadow 0.15s;
-            letter-spacing: 0.01em;
-        }
-
-        .btn-cook:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.55);
-        }
-
-        /* Error state */
-        .ai-error {
-            display: none;
-            background: rgba(248, 113, 113, 0.1);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.75rem;
-            padding: 1rem 1.15rem;
-            color: #fca5a5;
-            font-size: 0.86rem;
-            line-height: 1.6;
-        }
-
-        .ai-error.visible {
-            display: block;
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- ── Top bar ── -->
-    <header class="topbar">
-        <a href="{% url 'welcome' %}" class="nav-logo" id="logo-link">
-            <div class="logo-icon">🥗</div>
-            <span class="logo-text">MyMeal</span>
-        </a>
-        <div class="topbar-right">
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout" id="logout-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Log Out
-            </a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- ── Sidebar ── -->
-        <aside class="sidebar" id="sidebar">
-
-            <span class="sidebar-section-label">Main</span>
-
-            <a href="{% url 'dashboard' %}" class="sidebar-link active" id="nav-meals">
-                <span class="icon">🍽️</span>
-                <span>My Meal Dashboard</span>
-            </a>
-
-            <a href="{% url 'track_meals' %}" class="sidebar-link" id="nav-track">
-                <span class="icon">📊</span>
-                <span>Track Meals</span>
-            </a>
-
-            <a href="{% url 'inventory' %}" class="sidebar-link" id="nav-inventory">
-                <span class="icon">📦</span>
-                <span>Inventory</span>
-            </a>
-
-            <a href="{% url 'ai_meal_page' %}" class="sidebar-link" id="nav-ai">
-                <span class="icon">✨</span>
-                <span>AI Meal Generator</span>
-            </a>
-
-            <div class="sidebar-divider"></div>
-
-            <span class="sidebar-section-label">Account</span>
-
-            {% if request.user.is_staff %}
-            <a href="{% url 'manager_dashboard' %}" class="sidebar-link" id="nav-manager">
-                <span class="icon">🏥</span>
-                <span>Manager Panel</span>
-            </a>
-            {% endif %}
-
-            <button class="sidebar-link" id="nav-profile" onclick="showPanel('profile', this)">
-                <span class="icon">👤</span>
-                <span>My Profile</span>
-            </button>
-
-            <a href="{% url 'weekly_review_inbox' %}" class="sidebar-link" id="nav-inbox">
-                <span class="icon">📬</span>
-                <span>Weekly Reviews{% if unread_count %} <span
-                        style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#3b82f6;color:#fff;font-size:0.6rem;font-weight:800;margin-left:4px;">{{
-                        unread_count }}</span>{% endif %}</span>
-            </a>
-
-            <button class="sidebar-link" id="nav-settings" onclick="showPanel('settings', this)">
-                <span class="icon">⚙️</span>
-                <span>Settings</span>
-            </button>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link" id="sidebar-logout-btn">
-                    <span class="icon">🚪</span>
-                    <span>Log Out</span>
-                </a>
-            </div>
-
-        </aside>
-
-        <!-- ── Main Content ── -->
-        <main class="main">
-
-            <!-- ══ Panel: My Meal Dashboard ══ -->
-            <div class="content-panel active" id="panel-meals">
-                <div class="page-header">
-                    <h1>🍽️ My Meal Dashboard</h1>
-                    <p>Log everything you eat and track your daily calories.</p>
-                </div>
-
-                <!-- Django Messages -->
-                {% if messages %}
-                {% for message in messages %}
-                <div class="msg-banner {{ message.tags }}">
-                    {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}
-                    {{ message }}
-                </div>
-                {% endfor %}
-                {% endif %}
-
-                <!-- Add Meal -->
-                <div class="card">
-                    <h2>🔍 Analyze &amp; Log Meal <span
-                            style="font-size:0.72rem;font-weight:400;color:#475569;margin-left:0.4rem;">powered by
-                            Edamam</span></h2>
-                    <form method="POST" action="{% url 'dashboard' %}" id="add-meal-form">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="meal_name">🤖 Meal Description — API auto-calculates calories</label>
-                                <input type="text" id="meal_name" name="meal_name"
-                                    placeholder="e.g.  300g grilled chicken  •  1 cup oatmeal  •  2 boiled eggs"
-                                    required autocomplete="off">
-                            </div>
-
-                            <div style="grid-column:1/-1;display:flex;align-items:center;gap:0.75rem;margin:0.25rem 0;">
-                                <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
-                                <span style="font-size:0.72rem;color:#475569;font-weight:600;letter-spacing:0.05em;">OR
-                                    — ENTER MANUALLY</span>
-                                <div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div>
-                            </div>
-
-                            <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="calories">✏️ Calories (kcal) — fill this to skip the API</label>
-                                <input type="number" id="calories" name="calories"
-                                    placeholder="e.g. 450 — leave blank to use Edamam API" min="0" autocomplete="off">
-                            </div>
-
-                            <button type="submit" class="btn-submit" id="add-meal-btn" style="grid-column: 1 / -1;">🔍
-                                Analyze &amp; Log Meal</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- ✨ AI Meal Generator Button -->
-                <button class="btn-ai" id="btn-ai-generate" onclick="openAIModal()" type="button"
-                    style="margin-bottom: 1.5rem; width: 100%; max-width: none;">
-                    ✨ Generate AI Meal from My Inventory
-                </button>
-
-                <!-- Meal List -->
-                <div class="card">
-                    <h2>📋 Today's Meals</h2>
-                    {% if meals %}
-                    <div class="total-banner">
-                        <span class="lbl">Total Calories</span>
-                        <span class="val">{{ total_calories }} kcal</span>
-                    </div>
-                    <ul class="meal-list">
-                        {% for meal in meals %}
-                        <li class="meal-item">
-                            <div class="meal-info">
-                                <span class="meal-name">{{ meal.name }}</span>
-                                <span class="meal-calories">{{ meal.calories }} kcal</span>
-                            </div>
-                            <form method="POST" action="{% url 'delete_meal' meal.id %}" style="margin:0;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-delete" title="Delete meal">🗑 Delete</button>
-                            </form>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <div class="empty-state">
-                        <span>🍽️</span>
-                        No meals logged yet. Add your first meal above!
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- ══ Panel: My Profile ══ -->
-            <div class="content-panel" id="panel-profile">
-                <div class="page-header">
-                    <h1>👤 My Profile</h1>
-                    <p>Your medical information and allergy flags set by your care manager.</p>
-                </div>
-
-                {% if messages %}
-                {% for message in messages %}
-                <div class="msg-banner {{ message.tags }}" style="max-width:700px;">
-                    {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}🚫{% else %}⚠️{% endif %}
-                    {{ message }}
-                </div>
-                {% endfor %}
-                {% endif %}
-
-                <!-- Medical Stats row -->
-                <div
-                    style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;max-width:700px;margin-bottom:1.5rem;">
-
-                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;">
-                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">⚖️</div>
-                        <div style="font-size:1.7rem;font-weight:800;color:#a78bfa;line-height:1;">
-                            {% if profile.weight_kg %}{{ profile.weight_kg }} <span
-                                style="font-size:0.85rem;font-weight:500;color:#64748b;">kg</span>{% else %}<span
-                                style="color:#334155;font-size:1rem;">—</span>{% endif %}
-                        </div>
-                        <div
-                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
-                            Weight</div>
-                    </div>
-
-                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;">
-                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">📏</div>
-                        <div style="font-size:1.7rem;font-weight:800;color:#60a5fa;line-height:1;">
-                            {% if profile.height_cm %}{{ profile.height_cm }} <span
-                                style="font-size:0.85rem;font-weight:500;color:#64748b;">cm</span>{% else %}<span
-                                style="color:#334155;font-size:1rem;">—</span>{% endif %}
-                        </div>
-                        <div
-                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
-                            Height</div>
-                    </div>
-
-                    {% if profile.weight_kg and profile.height_cm %}
-                    <div class="card" style="padding:1.25rem 1.4rem;margin-bottom:0;" id="bmi-card">
-                        <div style="font-size:1.6rem;margin-bottom:0.35rem;">🧮</div>
-                        <div style="font-size:1.7rem;font-weight:800;line-height:1;" id="profile-bmi-val"
-                            data-w="{{ profile.weight_kg }}" data-h="{{ profile.height_cm }}">—</div>
-                        <div
-                            style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;margin-top:0.3rem;">
-                            BMI</div>
-                        <div style="font-size:0.75rem;font-weight:600;margin-top:0.25rem;" id="profile-bmi-cat"></div>
-                    </div>
-                    {% endif %}
-
-                </div>
-
-                <!-- Medical Notes -->
-                {% if profile.medical_notes %}
-                <div class="card" style="max-width:700px;margin-bottom:1.5rem;">
-                    <h2 style="color:#fcd34d;">📋 Medical Notes</h2>
-                    <p style="color:#cbd5e1;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;">{{
-                        profile.medical_notes }}</p>
-                </div>
-                {% endif %}
-
-                <!-- Allergy Flags (read-only) -->
-                <div class="card" style="max-width:700px;">
-                    <h2 style="color:#fca5a5;">⚠️ My Allergy Flags</h2>
-
-                    <div class="allergy-info-banner" style="margin-bottom:1.25rem;">
-                        <span style="font-size:1.1rem;flex-shrink:0;">🔴</span>
-                        <span>These allergies have been flagged by your care manager. You will receive a
-                            <strong>Medical Alert</strong> whenever you try to log a food matching any of these
-                            keywords.
-                            Contact your manager to update this list.
-                        </span>
-                    </div>
-
-                    {% if allergies %}
-                    <div class="allergy-tags" id="allergy-tags-list">
-                        {% for allergy in allergies %}
-                        <span class="allergy-tag">
-                            🚨 {{ allergy.keyword|capfirst }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="allergy-empty">
-                        <span>✅</span>
-                        No allergy flags set by your manager yet.
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Manager info note (only if no data at all) -->
-                {% if not profile.weight_kg and not profile.height_cm and not profile.medical_notes and not allergies %}
-                <div
-                    style="max-width:700px;margin-top:1rem;padding:1.25rem 1.4rem;background:rgba(71,85,105,0.15);border:1px solid rgba(71,85,105,0.25);border-radius:0.9rem;font-size:0.85rem;color:#64748b;display:flex;gap:0.75rem;align-items:flex-start;">
-                    <span style="font-size:1.2rem;">ℹ️</span>
-                    <span>Your profile hasn't been filled in yet. Your care manager will update your medical stats and
-                        allergy flags when your assessment is complete.</span>
-                </div>
-                {% endif %}
-
-            </div>
-
-            <!-- ══ Panel: Settings ══ -->
-            <div class="content-panel" id="panel-settings">
-                <div class="page-header">
-                    <h1>⚙️ Settings</h1>
-                    <p>Manage your preferences.</p>
-                </div>
-                <div class="card">
-                    <div class="coming-soon">
-                        <span class="cs-icon">⚙️</span>
-                        <h3>Coming Soon</h3>
-                        <p>Settings and preferences will be available here.</p>
-                    </div>
-                </div>
-            </div>
-
-        </main>
+{% extends 'tracker/base.html' %}
+
+{% block title %}Dashboard - MyMeal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .welcome-section {
+        margin-bottom: 3rem;
+        text-align: left;
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .option-card {
+        background: var(--surface);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: 1.5rem;
+        padding: 2.5rem 2rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .option-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 0;
+    }
+
+    .option-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--accent);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .option-card:hover::before {
+        opacity: 0.03;
+    }
+
+    .option-icon {
+        font-size: 2.5rem;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .option-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .option-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: #fff;
+    }
+
+    .option-desc {
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .badge-count {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        background: var(--secondary);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        z-index: 1;
+    }
+
+    /* Quick Stats */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+
+    @media (max-width: 768px) {
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">Welcome, {{ request.user.username }}! ✨</h1>
+    <p class="subtext">You are now in your intelligent meal dashboard.</p>
+</div>
+
+<!-- Quick Stats Overview -->
+<div class="quick-stats">
+    <div class="stat-card">
+        <span class="stat-label">Total Calories Today</span>
+        <span class="stat-value">{{ total_calories }} kcal</span>
     </div>
-
-    <!-- ✨ AI Meal Modal -->
-    <div class="ai-modal-overlay" id="ai-modal-overlay" role="dialog" aria-modal="true"
-        aria-labelledby="ai-modal-title">
-        <div class="ai-modal">
-
-            <button class="ai-modal-close" onclick="closeAIModal()" aria-label="Close modal">×</button>
-
-            <h2 id="ai-modal-title">✨ Zero-Waste AI Chef</h2>
-            <p class="ai-sub">Generating a personalised recipe from your inventory…</p>
-
-            <!-- Loading state -->
-            <div class="ai-loader" id="ai-loader">
-                <div class="spinner"></div>
-                <p>Asking Gemini AI… this takes a moment 🍳</p>
-            </div>
-
-            <!-- Error state -->
-            <div class="ai-error" id="ai-error">
-                <strong>⚠️ Error</strong> — <span id="ai-error-msg"></span>
-            </div>
-
-            <!-- Recipe content -->
-            <div class="ai-recipe" id="ai-recipe">
-
-                <div class="ai-recipe-name" id="ai-recipe-name"></div>
-                <div class="ai-cal-badge">🔥 <span id="ai-recipe-cal"></span> kcal estimated</div>
-
-                <div class="ai-section-label">🧑‍🍳 Instructions</div>
-                <ol class="ai-steps" id="ai-steps"></ol>
-
-                <div class="ai-section-label">🛒 Ingredients Used</div>
-                <div class="ai-ingr-chips" id="ai-ingr-chips"></div>
-
-                <!-- Hidden form that POSTs to confirm_ai_meal -->
-                <form method="POST" action="{% url 'confirm_ai_meal' %}" id="cook-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-cook" id="btn-cook">
-                        🍳 Cook This! — Deduct Ingredients
-                    </button>
-                </form>
-
-            </div>
-        </div>
+    <div class="stat-card">
+        <span class="stat-label">Meals Logged</span>
+        <span class="stat-value">{{ meals.count }}</span>
     </div>
+    <div class="stat-card">
+        <span class="stat-label">Allergy Flags</span>
+        <span class="stat-value">{{ allergies.count }}</span>
+    </div>
+</div>
 
-    <script>
-        // Auto-calculate BMI from manager-set stats
+<!-- Main Options Hub -->
+<div class="options-grid">
 
-        document.addEventListener('DOMContentLoaded', function () {
+    <!-- Track Meals -->
+    <a href="{% url 'track_meals' %}" class="option-card">
+        <div class="option-icon">🍽️</div>
+        <div class="option-content">
+            <h2 class="option-title">Track My Meals</h2>
+            <p class="option-desc">Log your breakfast, lunch, dinner, and snacks. Keep your health journey on track with
+                detailed calorie counting.</p>
+        </div>
+    </a>
 
-            var valEl = document.getElementById('profile-bmi-val');
+    <!-- Inventory -->
+    <a href="{% url 'inventory' %}" class="option-card">
+        <div class="option-icon">📦</div>
+        <div class="option-content">
+            <h2 class="option-title">Kitchen Inventory</h2>
+            <p class="option-desc">Manage what's in your pantry. Track quantities, categories, and ensure you always
+                have what you need for healthy meals.</p>
+        </div>
+    </a>
 
-            var catEl = document.getElementById('profile-bmi-cat');
+    <!-- AI Chef -->
+    <a href="{% url 'ai_meal_page' %}" class="option-card">
+        <div class="option-icon">✨</div>
+        <div class="option-content">
+            <h2 class="option-title">AI Personal Chef</h2>
+            <p class="option-desc">Zero-waste cooking! Let our AI generate delicious recipes using ingredients you
+                already have in your inventory.</p>
+        </div>
+    </a>
 
-            if (!valEl || !catEl) return;
+    <!-- Weekly Reviews -->
+    <a href="{% url 'weekly_review_inbox' %}" class="option-card">
+        {% if unread_count %}
+        <span class="badge-count">{{ unread_count }} New</span>
+        {% endif %}
+        <div class="option-icon">📬</div>
+        <div class="option-content">
+            <h2 class="option-title">Weekly Reviews</h2>
+            <p class="option-desc">Read feedback and weekly meal plan suggestions from your health care manager to stay
+                aligned with your goals.</p>
+        </div>
+    </a>
 
-            var w = parseFloat(valEl.getAttribute('data-w'));
+    <!-- Medical & Profile -->
+    <a href="{% url 'health_hub' %}" class="option-card" id="health-hub-card">
+        <div class="option-icon">🏥</div>
+        <div class="option-content">
+            <h2 class="option-title">Health Hub</h2>
+            <p class="option-desc">View your clinical summaries, medical reports, and manage your personal health
+                profile and stats.</p>
+        </div>
+    </a>
 
-            var h = parseFloat(valEl.getAttribute('data-h'));
+    <!-- Profile Management -->
+    <a href="{% url 'manage_allergies' %}" class="option-card" id="profile-card">
+        <div class="option-icon">👤</div>
+        <div class="option-content">
+            <h2 class="option-title">My Profile</h2>
+            <p class="option-desc">View your personal information, clinical measurements, and safety protocols managed
+                by your care team.</p>
+        </div>
+    </a>
 
-            if (!w || !h || h <= 0) return;
+</div>
 
-            var bmi = w / Math.pow(h / 100, 2);
-
-            var cat = '', color = '#60a5fa';
-
-            if (bmi < 18.5) { cat = '🔵 Underweight'; color = '#60a5fa'; }
-
-            else if (bmi < 25) { cat = '✅ Normal'; color = '#6ee7b7'; }
-
-            else if (bmi < 30) { cat = '🟡 Overweight'; color = '#fcd34d'; }
-
-            else { cat = '🔴 Obese'; color = '#f87171'; }
-
-            valEl.textContent = bmi.toFixed(1);
-
-            valEl.style.color = color;
-
-            catEl.textContent = cat;
-
-            catEl.style.color = color;
-
-        });
-
-
-
-        function showPanel(name, clickedBtn) {
-            document.querySelectorAll('.content-panel').forEach(function (p) {
-                p.classList.remove('active');
-            });
-            document.querySelectorAll('.sidebar-link').forEach(function (l) {
-                if (l.tagName === 'BUTTON') l.classList.remove('active');
-            });
-            var panel = document.getElementById('panel-' + name);
-            if (panel) panel.classList.add('active');
-            if (clickedBtn) clickedBtn.classList.add('active');
-        }
-
-        /* ── AI Meal Modal ── */
-        var aiOverlay = document.getElementById('ai-modal-overlay');
-        var aiLoader = document.getElementById('ai-loader');
-        var aiRecipeEl = document.getElementById('ai-recipe');
-        var aiErrorEl = document.getElementById('ai-error');
-        var aiErrorMsg = document.getElementById('ai-error-msg');
-        var aiBtnGen = document.getElementById('btn-ai-generate');
-
-        function openAIModal() {
-            // Reset states
-            aiLoader.style.display = 'block';
-            aiRecipeEl.classList.remove('visible');
-            aiErrorEl.classList.remove('visible');
-            aiOverlay.classList.add('open');
-            document.body.style.overflow = 'hidden';
-
-            // Disable button while loading
-            aiBtnGen.disabled = true;
-            aiBtnGen.textContent = '⏳ Generating…';
-
-            // Get CSRF token from the cook-form (already rendered by Django)
-            var csrf = document.querySelector('#cook-form [name=csrfmiddlewaretoken]').value;
-
-            fetch("{% url 'generate_ai_meal' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrf,
-                    'Content-Type': 'application/json',
-                },
-                body: '{}',
-            })
-                .then(function (res) { return res.json(); })
-                .then(function (data) {
-                    aiLoader.style.display = 'none';
-                    aiBtnGen.disabled = false;
-                    aiBtnGen.textContent = '✨ Generate AI Meal from My Inventory';
-
-                    if (data.error) {
-                        aiErrorMsg.textContent = data.error;
-                        aiErrorEl.classList.add('visible');
-                        return;
-                    }
-
-                    var recipe = data.recipe;
-
-                    // Populate name + calories
-                    document.getElementById('ai-recipe-name').textContent = recipe.recipe_name || 'AI-Generated Recipe';
-                    document.getElementById('ai-recipe-cal').textContent = recipe.estimated_calories || '—';
-
-                    // Instructions
-                    var stepsList = document.getElementById('ai-steps');
-                    stepsList.innerHTML = '';
-                    (recipe.instructions || []).forEach(function (step, i) {
-                        var li = document.createElement('li');
-                        var num = document.createElement('span');
-                        num.className = 'step-num';
-                        num.textContent = i + 1;
-                        var txt = document.createElement('span');
-                        txt.textContent = step;
-                        li.appendChild(num);
-                        li.appendChild(txt);
-                        stepsList.appendChild(li);
-                    });
-
-                    // Ingredient chips
-                    var chips = document.getElementById('ai-ingr-chips');
-                    chips.innerHTML = '';
-                    (recipe.ingredients_used || []).forEach(function (ing) {
-                        var chip = document.createElement('span');
-                        chip.className = 'ai-chip';
-                        chip.textContent = ing.quantity + ' ' + ing.unit + ' ' + ing.name;
-                        chips.appendChild(chip);
-                    });
-
-                    aiRecipeEl.classList.add('visible');
-                })
-                .catch(function (err) {
-                    aiLoader.style.display = 'none';
-                    aiBtnGen.disabled = false;
-                    aiBtnGen.textContent = '✨ Generate AI Meal from My Inventory';
-                    aiErrorMsg.textContent = 'Network error — please check your connection and try again.';
-                    aiErrorEl.classList.add('visible');
-                });
-        }
-
-        function closeAIModal() {
-            aiOverlay.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        // Close on backdrop click
-        aiOverlay.addEventListener('click', function (e) {
-            if (e.target === aiOverlay) closeAIModal();
-        });
-
-        // Close on Escape key
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && aiOverlay.classList.contains('open')) closeAIModal();
-        });
-    </script>
-
-</body>
-
-</html>
+{% endblock %}

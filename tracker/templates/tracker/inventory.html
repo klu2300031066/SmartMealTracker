@@ -1,890 +1,277 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Manage your food inventory — track items, quantities and units.">
-    <title>Inventory – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: #e2e8f0;
-        }
-
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(130px);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        body::before {
-            width: 500px;
-            height: 500px;
-            background: rgba(124, 58, 237, 0.15);
-            top: -120px;
-            left: -80px;
-        }
-
-        body::after {
-            width: 450px;
-            height: 450px;
-            background: rgba(59, 130, 246, 0.12);
-            bottom: -100px;
-            right: -80px;
-        }
-
-        /* ── Topbar ── */
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.75rem;
-            background: rgba(10, 8, 35, 0.75);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #7c3aed, #3b82f6);
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            box-shadow: 0 3px 12px rgba(124, 58, 237, 0.4);
-        }
-
-        .logo-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-user {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
-
-        .nav-user strong {
-            color: #c4b5fd;
-        }
-
-        .btn-logout {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.4rem 0.9rem;
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 0.5rem;
-            background: rgba(248, 113, 113, 0.08);
-            color: #fca5a5;
-            font-family: inherit;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(248, 113, 113, 0.18);
-            transform: translateY(-1px);
-        }
-
-        /* ── Shell ── */
-        .shell {
-            display: flex;
-            min-height: 100vh;
-            padding-top: 62px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            flex-shrink: 0;
-            background: rgba(10, 8, 35, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 0.85rem;
-            position: fixed;
-            top: 62px;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 0 0.65rem;
-            margin-bottom: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .sidebar-section-label:first-child {
-            margin-top: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.9rem;
-            border-radius: 0.65rem;
-            text-decoration: none;
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: #94a3b8;
-            border: none;
-            background: transparent;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-            transition: background 0.18s, color 0.18s, transform 0.12s;
-        }
-
-        .sidebar-link:hover {
-            background: rgba(167, 139, 250, 0.1);
-            color: #e2e8f0;
-            transform: translateX(3px);
-        }
-
-        .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(124, 58, 237, 0.3), rgba(59, 130, 246, 0.2));
-            color: #c4b5fd;
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            font-weight: 600;
-        }
-
-        .sidebar-link .icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-            margin: 1rem 0.65rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-        }
-
-        /* ── Main ── */
-        .main {
-            flex: 1;
-            margin-left: 230px;
-            padding: 2.25rem 2rem 4rem;
-        }
-
-        .page-header {
-            margin-bottom: 1.75rem;
-        }
-
-        .page-header h1 {
-            font-size: 1.55rem;
-            font-weight: 800;
-            letter-spacing: -0.4px;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .page-header p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
-        /* ── Messages ── */
-        .msg-banner {
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            padding: 0.85rem 1.1rem;
-            border-radius: 0.75rem;
-            font-size: 0.88rem;
-            font-weight: 500;
-            max-width: 720px;
-            margin-bottom: 1.2rem;
-            animation: fadeUp 0.35s ease both;
-        }
-
-        .msg-banner.success {
-            background: rgba(52, 211, 153, 0.12);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #6ee7b7;
-        }
-
-        .msg-banner.error {
-            background: rgba(248, 113, 113, 0.12);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #fca5a5;
-        }
-
-        /* ── Add Item Button ── */
-        .btn-add-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.65rem 1.4rem;
-            border: none;
-            border-radius: 0.65rem;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.92rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
-            transition: transform 0.15s, box-shadow 0.15s;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-add-trigger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.52);
-        }
-
-        .btn-add-trigger .plus {
-            font-size: 1.3rem;
-            line-height: 1;
-        }
-
-        /* ── Add Item Modal / Drawer ── */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(4px);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.open {
-            display: flex;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .modal {
-            background: linear-gradient(145deg, rgba(30, 20, 70, 0.97), rgba(15, 12, 41, 0.97));
-            border: 1px solid rgba(167, 139, 250, 0.2);
-            border-radius: 1.4rem;
-            padding: 2rem 2.2rem;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #c4b5fd;
-        }
-
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: #64748b;
-            font-size: 1.4rem;
-            cursor: pointer;
-            line-height: 1;
-            padding: 0.1rem 0.3rem;
-            border-radius: 0.35rem;
-            transition: color 0.2s, background 0.2s;
-        }
-
-        .modal-close:hover {
-            color: #fca5a5;
-            background: rgba(248, 113, 113, 0.1);
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #64748b;
-        }
-
-        .form-group input,
-        .form-group select {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.6rem;
-            padding: 0.65rem 0.85rem;
-            height: 42px;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.92rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-group select option {
-            background: #1e1447;
-        }
-
-        .form-group input::placeholder {
-            color: #334155;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.18);
-        }
-
-        .qty-unit-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .btn-submit-modal {
-            width: 100%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 0.65rem;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.38);
-            transition: transform 0.15s, box-shadow 0.15s;
-            margin-top: 0.5rem;
-        }
-
-        .btn-submit-modal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.52);
-        }
-
-        /* ── Inventory Grid ── */
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1rem;
-            max-width: 900px;
-        }
-
-        .inv-card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 1.1rem;
-            padding: 1.2rem 1.3rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
-            animation: fadeUp 0.3s ease both;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .inv-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .inv-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-        }
-
-        .inv-card-icon {
-            font-size: 1.8rem;
-            margin-bottom: 0.65rem;
-        }
-
-        .inv-card-name {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #e2e8f0;
-            margin-bottom: 0.4rem;
-            word-break: break-word;
-        }
-
-        .inv-card-qty {
-            font-size: 1.4rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.25rem;
-        }
-
-        .inv-card-unit {
-            font-size: 0.75rem;
-            color: #64748b;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 0.9rem;
-        }
-
-        .inv-card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-delete-inv {
-            background: transparent;
-            border: 1px solid rgba(248, 113, 113, 0.22);
-            border-radius: 0.45rem;
-            color: #fca5a5;
-            padding: 0.25rem 0.6rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-
-        .btn-delete-inv:hover {
-            background: rgba(248, 113, 113, 0.14);
-            border-color: rgba(248, 113, 113, 0.5);
-            transform: scale(1.05);
-        }
-
-        .btn-edit-inv {
-            background: transparent;
-            border: 1px solid rgba(167, 139, 250, 0.25);
-            border-radius: 0.45rem;
-            color: #c4b5fd;
-            padding: 0.25rem 0.6rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-
-        .btn-edit-inv:hover {
-            background: rgba(167, 139, 250, 0.12);
-            border-color: rgba(167, 139, 250, 0.5);
-            transform: scale(1.05);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #475569;
-            max-width: 380px;
-        }
-
-        .empty-state .es-icon {
-            font-size: 3.5rem;
-            margin-bottom: 0.75rem;
-            display: block;
-        }
-
-        .empty-state h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #64748b;
-            margin-bottom: 0.35rem;
-        }
-
-        .empty-state p {
-            font-size: 0.85rem;
-        }
-
-        /* ── Stats bar ── */
-        .stats-bar {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            max-width: 900px;
-        }
-
-        .stat-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.45rem 1rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-
-        .stat-pill strong {
-            color: #c4b5fd;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(24px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                width: 60px;
-                padding: 1rem 0.4rem;
-            }
-
-            .sidebar-link span:not(.icon) {
-                display: none;
-            }
-
-            .sidebar-section-label {
-                display: none;
-            }
-
-            .main {
-                margin-left: 60px;
-                padding: 1.5rem 1rem 3rem;
-            }
-
-            .nav-user {
-                display: none;
-            }
-
-            .inventory-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Topbar -->
-    <header class="topbar">
-        <a href="{% url 'welcome' %}" class="nav-logo">
-            <div class="logo-icon">🥗</div>
-            <span class="logo-text">MyMeal</span>
-        </a>
-        <div class="topbar-right">
-            <span class="nav-user">👤 <strong>{{ request.user.username }}</strong></span>
-            <a href="{% url 'logout' %}" class="btn-logout">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Log Out
-            </a>
-        </div>
-    </header>
-
-    <div class="shell">
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <span class="sidebar-section-label">Main</span>
-            <a href="{% url 'dashboard' %}" class="sidebar-link">
-                <span class="icon">🍽️</span><span>My Meal Dashboard</span>
-            </a>
-            <a href="{% url 'track_meals' %}" class="sidebar-link">
-                <span class="icon">📊</span><span>Track Meals</span>
-            </a>
-            <a href="{% url 'inventory' %}" class="sidebar-link active">
-                <span class="icon">📦</span><span>Inventory</span>
-            </a>
-            <a href="{% url 'ai_meal_page' %}" class="sidebar-link" id="nav-ai">
-                <span class="icon">✨</span><span>AI Meal Generator</span>
-            </a>
-            <div class="sidebar-divider"></div>
-            <span class="sidebar-section-label">Account</span>
-            <a href="{% url 'dashboard' %}" class="sidebar-link">
-                <span class="icon">👤</span><span>Profile</span>
-            </a>
-            <a href="{% url 'dashboard' %}" class="sidebar-link">
-                <span class="icon">⚙️</span><span>Settings</span>
-            </a>
-            <div class="sidebar-footer">
-                <div class="sidebar-divider"></div>
-                <a href="{% url 'logout' %}" class="sidebar-link">
-                    <span class="icon">🚪</span><span>Log Out</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <main class="main">
-            <div class="page-header">
-                <h1>📦 Inventory</h1>
-                <p>Track the food items you have at home — name, quantity and unit.</p>
-            </div>
-
-            {% if messages %}{% for message in messages %}
-            <div class="msg-banner {{ message.tags }}">
-                {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %} {{ message }}
-            </div>
-            {% endfor %}{% endif %}
-
-            <!-- Stats -->
-            {% if items %}
-            <div class="stats-bar">
-                <div class="stat-pill">📦 Total Items: <strong>{{ items.count }}</strong></div>
-            </div>
-            {% endif %}
-
-            <!-- Add Item Button -->
-            <button class="btn-add-trigger" id="open-modal-btn" onclick="openModal()">
-                <span class="plus">＋</span> Add Item
-            </button>
-
-            <!-- Inventory Grid -->
-            {% if items %}
-            <div class="inventory-grid">
-                {% for item in items %}
-                <div class="inv-card">
-                    <div class="inv-card-name">{{ item.name }}</div>
-                    <div class="inv-card-qty">{{ item.quantity|floatformat:"-2" }}</div>
-                    <div class="inv-card-unit">{{ item.get_unit_display }}</div>
-                    <div class="inv-card-footer">
-                        <button type="button" class="btn-edit-inv"
-                            onclick="openEditModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.quantity }}', '{{ item.unit }}')"
-                            title="Edit quantity">
-                            ✏️ Edit
-                        </button>
-                        <form method="POST" action="{% url 'delete_inventory_item' item.id %}" style="margin:0;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-delete-inv" title="Remove item">🗑 Remove</button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <span class="es-icon">📦</span>
-                <h3>No items yet</h3>
-                <p>Tap the <strong>+ Add Item</strong> button above to start adding your food stock.</p>
-            </div>
-            {% endif %}
-        </main>
+{% extends 'tracker/base.html' %}
+
+{% block title %}Inventory - MyMeal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inventory-tools {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .btn-add-item {
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        transition: all 0.2s;
+    }
+
+    .btn-add-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+    }
+
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .item-card {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        position: relative;
+    }
+
+    .item-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .item-qty-row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.35rem;
+    }
+
+    .item-qty {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+
+    .item-unit {
+        font-size: 0.8rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-edit {
+        background: rgba(167, 139, 250, 0.1);
+        border: 1px solid rgba(167, 139, 250, 0.2);
+        color: var(--accent);
+    }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .modal-card {
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .form-group input,
+    .form-group select {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        color: #fff;
+        font-family: inherit;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">📦 Kitchen Inventory</h1>
+    <p class="subtext">Keep track of your ingredients and stock levels.</p>
+</div>
+
+<div class="inventory-tools">
+    <div class="stat-card" style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.02);">
+        <span class="stat-label" style="font-size: 0.65rem;">Total Items</span>
+        <span class="stat-value" style="font-size: 1.1rem;">{{ items.count }}</span>
     </div>
+    <button class="btn-add-item" onclick="openModal()">
+        <span>➕</span> Add New Item
+    </button>
+</div>
 
-    <!-- Add Item Modal -->
-    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-        <div class="modal" id="modal-box">
-            <div class="modal-header">
-                <span class="modal-title">➕ Add Inventory Item</span>
-                <button class="modal-close" onclick="closeModal()" title="Close">✕</button>
-            </div>
-            <form method="POST" action="{% url 'inventory' %}" id="inv-form">
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:0.75rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:#10b981;">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="inventory-grid">
+    {% for item in items %}
+    <div class="card item-card">
+        <span class="item-name">{{ item.name }}</span>
+        <div class="item-qty-row">
+            <span class="item-qty">{{ item.quantity|floatformat:"-2" }}</span>
+            <span class="item-unit">{{ item.get_unit_display }}</span>
+        </div>
+        <div class="item-actions">
+            <button class="btn-action btn-edit"
+                onclick="openEditModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.quantity }}', '{{ item.unit }}')">Edit</button>
+            <form method="POST" action="{% url 'delete_inventory_item' item.id %}" style="flex:1;">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="item-name">Item Name</label>
-                    <input type="text" id="item-name" name="name" placeholder="e.g. Chicken, Rice, Milk..." required
-                        autocomplete="off">
-                </div>
-                <div class="qty-unit-row">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label for="item-qty">Quantity</label>
-                        <input type="number" id="item-qty" name="quantity" placeholder="e.g. 500" min="0" step="any"
-                            required>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label for="item-unit">Unit</label>
-                        <select id="item-unit" name="unit">
-                            {% for val, label in unit_choices %}
-                            <option value="{{ val }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit-modal">✅ Add to Inventory</button>
+                <button type="submit" class="btn-action btn-delete"
+                    style="width:100%; border:1px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.1);">Delete</button>
             </form>
         </div>
     </div>
+    {% empty %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">🥚</span>
+        <h3 style="color: var(--muted);">Pantry is empty!</h3>
+        <p style="color: var(--muted); font-size: 0.85rem;">Add your first item to start tracking.</p>
+    </div>
+    {% endfor %}
+</div>
 
-    <!-- Edit Quantity Modal -->
-    <div class="modal-overlay" id="edit-modal-overlay" onclick="handleEditOverlayClick(event)">
-        <div class="modal" id="edit-modal-box">
-            <div class="modal-header">
-                <span class="modal-title" id="edit-modal-title">✏️ Update Quantity</span>
-                <button class="modal-close" onclick="closeEditModal()" title="Close">✕</button>
-            </div>
-            <form method="POST" id="edit-inv-form" action="">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Item Name</label>
-                    <input type="text" id="edit-item-name-display" disabled style="opacity:0.5; cursor:not-allowed;">
-                </div>
-                <div class="qty-unit-row">
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label for="edit-qty">New Quantity</label>
-                        <input type="number" id="edit-qty" name="quantity" placeholder="e.g. 250" min="0" step="any"
-                            required>
-                    </div>
-                    <div class="form-group" style="margin-bottom:0;">
-                        <label for="edit-unit">Unit</label>
-                        <select id="edit-unit" name="unit">
-                            {% for val, label in unit_choices %}
-                            <option value="{{ val }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-submit-modal"
-                    style="background: linear-gradient(90deg,#059669,#0891b2); box-shadow: 0 4px 16px rgba(5,150,105,0.35);">💾
-                    Save Changes</button>
-            </form>
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="inv-modal">
+    <div class="card modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 id="modal-title" style="font-size: 1.25rem;">Add Item</h2>
+            <button onclick="closeModal()"
+                style="background:none; border:none; color:var(--muted); font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
+
+        <form id="inv-form" method="POST" action="{% url 'inventory' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Item Name</label>
+                <input type="text" name="name" id="field-name" placeholder="e.g. Basmati Rice" required>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" name="quantity" id="field-qty" step="any" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Unit</label>
+                    <select name="unit" id="field-unit">
+                        <option value="kg">Kilograms (kg)</option>
+                        <option value="g">Grams (g)</option>
+                        <option value="l">Liters (L)</option>
+                        <option value="ml">Milliliters (mL)</option>
+                        <option value="pcs">Pieces (pcs)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-add-item" style="width:100%; justify-content:center; margin-top:1rem;">Save
+                Item</button>
+        </form>
     </div>
+</div>
 
-    </div>
+<div style="margin-top: 2rem;">
+    <a href="{% url 'dashboard' %}" style="color: var(--accent); text-decoration: none; font-weight: 600;">← Back to
+        Dashboard</a>
+</div>
+{% endblock %}
 
-    <script>
-        /* ── Add modal ── */
-        function openModal() {
-            document.getElementById('modal-overlay').classList.add('open');
-            setTimeout(() => document.getElementById('item-name').focus(), 50);
-        }
-        function closeModal() {
-            document.getElementById('modal-overlay').classList.remove('open');
-        }
-        function handleOverlayClick(e) {
-            if (e.target === document.getElementById('modal-overlay')) closeModal();
-        }
+{% block extra_js %}
+<script>
+    const modal = document.getElementById('inv-modal');
+    const form = document.getElementById('inv-form');
+    const modalTitle = document.getElementById('modal-title');
 
-        /* ── Edit modal ── */
-        function openEditModal(itemId, itemName, currentQty, currentUnit) {
-            document.getElementById('edit-modal-title').textContent = '✏️ Update — ' + itemName;
-            document.getElementById('edit-item-name-display').value = itemName;
-            document.getElementById('edit-qty').value = currentQty;
-            document.getElementById('edit-unit').value = currentUnit;
-            document.getElementById('edit-inv-form').action = '/inventory/update/' + itemId + '/';
-            document.getElementById('edit-modal-overlay').classList.add('open');
-            setTimeout(() => document.getElementById('edit-qty').focus(), 50);
-        }
-        function closeEditModal() {
-            document.getElementById('edit-modal-overlay').classList.remove('open');
-        }
-        function handleEditOverlayClick(e) {
-            if (e.target === document.getElementById('edit-modal-overlay')) closeEditModal();
-        }
+    function openModal() {
+        modalTitle.textContent = "Add New Item";
+        form.action = "{% url 'inventory' %}";
+        form.reset();
+        modal.classList.add('open');
+    }
 
-        /* ESC closes whichever modal is open */
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') { closeModal(); closeEditModal(); }
-        });
-    </script>
-</body>
+    function openEditModal(id, name, qty, unit) {
+        modalTitle.textContent = "Edit Item";
+        form.action = `/inventory/update/${id}/`;
+        document.getElementById('field-name').value = name;
+        document.getElementById('field-qty').value = qty;
+        document.getElementById('field-unit').value = unit;
+        modal.classList.add('open');
+    }
 
-</html>
+    function closeModal() {
+        modal.classList.remove('open');
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) closeModal();
+    }
+</script>
+{% endblock %}
