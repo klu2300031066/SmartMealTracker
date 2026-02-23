@@ -1,12 +1,51 @@
-.env
+# --- Django ---
+*.log
+local_settings.py
 db.sqlite3
+db.sqlite3-journal
+media
+staticfiles/
+/static/
+
+# --- Python ---
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+*.fnt
+
+# --- IDEs ---
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Gunicorn files
+# --- Docker ---
+.docker/
+# This might vary based on your compose file, but usually:
+# postgres_data/ # (If you mount it locally)
+
+# --- Binaries & Large Files ---
+cloudflared.exe
+cloudflared
+*.exe
+*.dll
+*.so
+*.dylib
+
+# --- Gunicorn/Unix Sockets ---
 gunicorn.ctl
 *.sock
 *.pid
-*.log
