@@ -154,6 +154,40 @@ class ManagerMessage(models.Model):
         return f"[{'READ' if self.is_read else 'UNREAD'}] {self.subject} → {self.recipient.username}"
 
 
+# ── Support Tickets (Manager → Admin) ─────────────────────────────────────────
+
+class SupportTicket(models.Model):
+    """A ticket raised by a manager to the system admins."""
+    manager = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='raised_tickets',
+    )
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    is_resolved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['is_resolved', '-created_at']
+
+    def __str__(self):
+        return f"[{'RESOLVED' if self.is_resolved else 'OPEN'}] {self.subject} by {self.manager.username}"
+
+
+# ── System Settings ───────────────────────────────────────────────────────────
+
+class SystemSettings(models.Model):
+    is_maintenance_mode = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "System Settings"
+
+    @classmethod
+    def get_settings(cls):
+        obj, created = cls.objects.get_or_create(id=1)
+        return obj
+
+
 # Auto-create a UserProfile whenever a new User is saved.
 @receiver(post_save, sender=User)
 def create_or_save_user_profile(sender, instance, created, **kwargs):

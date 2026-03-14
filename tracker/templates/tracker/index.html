@@ -1,498 +1,847 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="MyMeal – Your personalized meal tracking companion. Log meals, count calories, and reach your health goals.">
-    <title>MyMeal – Personalized Meal Tracker</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        content="NexusMealTracker – India's smart nutrition and meal tracking platform. Log meals, monitor calories, and reach your health goals.">
+    <title>NexusMealTracker – Diet. Nutrition. Complete Wellness.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>(function () { const t = localStorage.getItem('theme'); if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme:dark)').matches)) { document.documentElement.classList.add('dark') } })()</script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* ── Reset & Base ─────────────────────────────────────────── */
-        *,
-        *::before,
-        *::after {
+        * {
             box-sizing: border-box;
             margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --purple: #7c3aed;
-            --blue: #3b82f6;
-            --light-purple: #a78bfa;
-            --soft: #c4b5fd;
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --card-bg: rgba(255, 255, 255, 0.06);
-            --border: rgba(255, 255, 255, 0.10);
+            padding: 0
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            color: var(--text);
-            overflow-x: hidden;
+            color: #1a3c34;
+            background: #fff;
+            overflow-x: hidden
         }
 
-        /* ── Animated background blobs ──────────────────────────── */
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: 0;
-            pointer-events: none;
-            animation: blobMove 12s ease-in-out infinite alternate;
+        .dark body {
+            background: #0f1a16;
+            color: #d1fae5
         }
 
-        body::before {
-            width: 500px;
-            height: 500px;
-            background: rgba(124, 58, 237, 0.18);
-            top: -120px;
-            left: -120px;
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Poppins', sans-serif
         }
 
-        body::after {
-            width: 450px;
-            height: 450px;
-            background: rgba(59, 130, 246, 0.15);
-            bottom: -100px;
-            right: -100px;
-            animation-delay: -6s;
-        }
-
-        @keyframes blobMove {
-            from {
-                transform: translate(0, 0) scale(1);
-            }
-
-            to {
-                transform: translate(40px, 30px) scale(1.1);
-            }
-        }
-
-        /* ── Everything above the blobs ────────────────────────── */
-        .page-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── Navbar ─────────────────────────────────────────────── */
-        nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.1rem 2.5rem;
-            background: rgba(15, 12, 41, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+        /* ── Navbar ── */
+        .navbar {
             position: sticky;
             top: 0;
             z-index: 100;
-        }
-
-        /* Logo */
-        .nav-logo {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            padding: 1rem 2rem;
             display: flex;
             align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
+            justify-content: space-between;
+            transition: all .3s
         }
 
-        .nav-logo .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--purple), var(--blue));
+        .dark .navbar {
+            background: rgba(15, 26, 22, 0.92);
+            border-color: rgba(255, 255, 255, 0.08)
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #00C853, #00897B);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.1rem;
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3)
         }
 
-        .nav-logo span {
-            font-size: 1.25rem;
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
             font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, var(--light-purple), var(--blue));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
+            color: #0d3b2e
         }
 
-        /* Nav buttons */
+        .dark .logo-text {
+            color: #d1fae5
+        }
+
+        .logo-text span {
+            color: #00C853
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem
+        }
+
+        .nav-links a {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            text-decoration: none;
+            transition: color .2s;
+            position: relative;
+            padding-bottom: 2px
+        }
+
+        .dark .nav-links a {
+            color: #94a3b8
+        }
+
+        .nav-links a.active {
+            color: #00C853
+        }
+
+        .nav-links a.active::after,
+        .nav-links a:hover::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background: #00C853;
+            border-radius: 2px
+        }
+
+        .nav-links a:hover {
+            color: #00C853
+        }
+
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.75rem
         }
 
-        .btn-nav {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1.15rem;
-            border-radius: 0.6rem;
-            font-family: inherit;
-            font-size: 0.88rem;
-            font-weight: 600;
-            cursor: pointer;
+        .btn-login {
+            padding: .5rem 1.25rem;
+            border-radius: 8px;
+            border: 2px solid #00C853;
+            color: #00C853;
+            font-weight: 700;
+            font-size: .875rem;
             text-decoration: none;
-            transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+            transition: all .2s
         }
 
-        /* Login – ghost */
-        #btn-login {
-            background: transparent;
-            border: 1px solid rgba(167, 139, 250, 0.4);
-            color: var(--soft);
+        .btn-login:hover {
+            background: #00C853;
+            color: #fff
         }
 
-        #btn-login:hover {
-            background: rgba(167, 139, 250, 0.1);
-            border-color: var(--light-purple);
-            transform: translateY(-1px);
-        }
-
-        /* Sign Up – filled gradient */
-        #btn-signup {
-            background: linear-gradient(90deg, var(--purple), var(--blue));
-            border: none;
+        .btn-signup {
+            padding: .5rem 1.25rem;
+            border-radius: 8px;
+            background: #00C853;
             color: #fff;
-            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+            font-weight: 700;
+            font-size: .875rem;
+            text-decoration: none;
+            transition: all .2s;
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.35)
         }
 
-        #btn-signup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.55);
+        .btn-signup:hover {
+            background: #00b84a;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 200, 83, 0.45)
         }
 
-        /* SVG icons inside buttons */
-        .btn-nav svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-
-        /* ── Hero section ───────────────────────────────────────── */
-        .hero {
+        .toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            border: 1.5px solid #bbf7d0;
+            cursor: pointer;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            padding: 6rem 1.5rem 4rem;
-            max-width: 750px;
-            margin: 0 auto;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all .2s;
+            flex-shrink: 0
         }
 
-        .badge {
+        .dark .toggle-btn {
+            background: #1a3c34;
+            border-color: #374151
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.1)
+        }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 2rem 4rem
+        }
+
+        .hero-content {
+            max-width: 580px;
+            z-index: 2;
+            position: relative
+        }
+
+        .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            background: rgba(167, 139, 250, 0.12);
-            border: 1px solid rgba(167, 139, 250, 0.3);
+            gap: .5rem;
+            padding: .4rem 1rem;
+            background: #d4f0de;
+            border: 1px solid #a7f3d0;
             border-radius: 999px;
-            padding: 0.35rem 0.95rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--soft);
-            letter-spacing: 0.04em;
+            font-size: .75rem;
+            font-weight: 700;
+            color: #065f46;
             text-transform: uppercase;
-            margin-bottom: 1.75rem;
-            animation: fadeDown 0.6s ease both;
+            letter-spacing: .06em;
+            margin-bottom: 1.75rem
         }
 
         .hero h1 {
-            font-size: clamp(2.6rem, 6vw, 4rem);
-            font-weight: 800;
-            line-height: 1.15;
-            letter-spacing: -1.5px;
+            font-size: clamp(2.8rem, 5vw, 4.2rem);
+            font-weight: 900;
+            line-height: 1.1;
+            color: #0d3b2e;
             margin-bottom: 1.25rem;
-            animation: fadeDown 0.6s 0.1s ease both;
+            letter-spacing: -1px
         }
 
-        .hero h1 .gradient-text {
-            background: linear-gradient(90deg, #a78bfa, #60a5fa, #a78bfa);
-            background-size: 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            animation: shimmer 4s linear infinite;
+        .dark .hero h1 {
+            color: #d1fae5
         }
 
-        @keyframes shimmer {
-            from {
-                background-position: 0% center;
-            }
-
-            to {
-                background-position: 200% center;
-            }
+        .hero h1 span {
+            color: #00C853
         }
 
         .hero p {
-            font-size: 1.1rem;
-            color: var(--muted);
-            line-height: 1.7;
-            max-width: 520px;
-            margin-bottom: 2.5rem;
-            font-weight: 300;
-            animation: fadeDown 0.6s 0.2s ease both;
+            font-size: 1.05rem;
+            color: #4b7a6a;
+            line-height: 1.75;
+            max-width: 480px;
+            margin-bottom: 2.25rem;
+            font-weight: 400
+        }
+
+        .dark .hero p {
+            color: #6ee7b7
         }
 
         .hero-cta {
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
-            justify-content: center;
-            animation: fadeDown 0.6s 0.3s ease both;
+            align-items: center
         }
 
-        .btn-primary {
+        .btn-primary-lg {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.85rem 2rem;
-            background: linear-gradient(90deg, var(--purple), var(--blue));
-            border: none;
-            border-radius: 0.75rem;
+            gap: .5rem;
+            padding: .9rem 2rem;
+            background: #00C853;
             color: #fff;
-            font-family: inherit;
+            font-family: 'Poppins', sans-serif;
             font-size: 1rem;
             font-weight: 700;
-            cursor: pointer;
+            border-radius: 12px;
             text-decoration: none;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: all .3s;
+            box-shadow: 0 6px 20px rgba(0, 200, 83, 0.4)
         }
 
-        .btn-primary:hover {
+        .btn-primary-lg:hover {
+            background: #00b84a;
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 200, 83, 0.5)
         }
 
-        .btn-ghost {
+        .btn-ghost-lg {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.85rem 2rem;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            color: var(--text);
-            font-family: inherit;
+            gap: .5rem;
+            padding: .9rem 2rem;
+            border: 2px solid #d1fae5;
+            color: #0d3b2e;
+            font-family: 'Poppins', sans-serif;
             font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
+            font-weight: 700;
+            border-radius: 12px;
             text-decoration: none;
-            transition: transform 0.15s, background 0.2s, border-color 0.2s;
+            transition: all .3s
         }
 
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: var(--light-purple);
-            transform: translateY(-1px);
+        .dark .btn-ghost-lg {
+            border-color: #374151;
+            color: #d1fae5
         }
 
-        /* ── Feature cards ──────────────────────────────────────── */
-        .features {
+        .btn-ghost-lg:hover {
+            border-color: #00C853;
+            color: #00C853;
+            transform: translateY(-1px)
+        }
+
+        /* ── Hero blobs ── */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none
+        }
+
+        .blob1 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 200, 83, 0.12) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            border-radius: 50%;
+            animation: blobFloat 8s ease-in-out infinite alternate
+        }
+
+        .blob2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 137, 123, 0.1) 0%, transparent 70%);
+            bottom: -60px;
+            right: 200px;
+            border-radius: 50%;
+            animation: blobFloat 10s ease-in-out infinite alternate-reverse
+        }
+
+        .hero-wave {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 55%;
+            height: 80%;
+            background: linear-gradient(135deg, #e8f5e9, #d4f0de);
+            border-radius: 80% 0 0 60%;
+            clip-path: ellipse(100% 100% at 100% 50%);
+            z-index: 0
+        }
+
+        .dark .hero-wave {
+            background: linear-gradient(135deg, #1a3c34, #0f2e25)
+        }
+
+        @keyframes blobFloat {
+            from {
+                transform: translate(0, 0) scale(1)
+            }
+
+            to {
+                transform: translate(30px, 20px) scale(1.08)
+            }
+        }
+
+        .hero-visual {
+            position: absolute;
+            right: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .hero-circle {
+            width: 340px;
+            height: 340px;
+            background: linear-gradient(135deg, #ffffff, #d4f0de);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9rem;
+            box-shadow: 0 24px 60px rgba(0, 200, 83, 0.2), inset 0 2px 3px rgba(255, 255, 255, 0.8);
+            animation: pulse 3s ease-in-out infinite
+        }
+
+        .dark .hero-circle {
+            background: linear-gradient(135deg, #1a3c34, #0f2e25)
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.03)
+            }
+        }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+            background: #0d3b2e;
+            padding: 2.5rem 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap
+        }
+
+        .dark .stats-bar {
+            background: #071a12
+        }
+
+        .stat-item {
+            text-align: center
+        }
+
+        .stat-num {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 900;
+            color: #00C853;
+            line-height: 1
+        }
+
+        .stat-txt {
+            font-size: .8rem;
+            color: #6ee7b7;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-top: .35rem;
+            font-weight: 600
+        }
+
+        /* ── Section ── */
+        .section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        .section-label {
+            font-size: .7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: #00C853;
+            margin-bottom: .75rem
+        }
+
+        .section-title {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(1.75rem, 3vw, 2.5rem);
+            font-weight: 900;
+            color: #0d3b2e;
+            line-height: 1.25;
+            margin-bottom: 1rem
+        }
+
+        .dark .section-title {
+            color: #d1fae5
+        }
+
+        .section-body {
+            font-size: 1rem;
+            color: #4b7a6a;
+            line-height: 1.75;
+            max-width: 640px;
+            margin: 0 auto
+        }
+
+        .dark .section-body {
+            color: #6ee7b7
+        }
+
+        /* ── Feature Cards ── */
+        .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.25rem;
-            max-width: 780px;
-            margin: 4rem auto 5rem;
-            padding: 0 1.5rem;
-            animation: fadeUp 0.7s 0.4s ease both;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.75rem;
+            margin-top: 3.5rem
         }
 
         .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 1.1rem;
-            padding: 1.5rem 1.35rem;
-            text-align: center;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            background: #fff;
+            border: 1px solid #e8f5e9;
+            border-radius: 20px;
+            padding: 2rem 1.75rem;
+            box-shadow: 0 4px 24px rgba(0, 200, 83, 0.06);
+            transition: all .3s
+        }
+
+        .dark .feature-card {
+            background: #1a3c34;
+            border-color: #2d4a3e;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3)
         }
 
         .feature-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.09);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0, 200, 83, 0.15);
+            border-color: #a7f3d0
         }
 
         .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 0.75rem;
-            display: block;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #d4f0de, #a7f3d0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem
+        }
+
+        .dark .feature-icon {
+            background: linear-gradient(135deg, #1a3c34, #0d3b2e)
         }
 
         .feature-card h3 {
-            font-size: 0.97rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.05rem;
             font-weight: 700;
-            margin-bottom: 0.4rem;
-            color: var(--soft);
+            color: #0d3b2e;
+            margin-bottom: .5rem
+        }
+
+        .dark .feature-card h3 {
+            color: #d1fae5
         }
 
         .feature-card p {
-            font-size: 0.82rem;
-            color: var(--muted);
-            line-height: 1.55;
-            font-weight: 300;
+            font-size: .875rem;
+            color: #4b7a6a;
+            line-height: 1.65
         }
 
-        /* ── Animations ─────────────────────────────────────────── */
-        @keyframes fadeDown {
-            from {
-                opacity: 0;
-                transform: translateY(-16px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .dark .feature-card p {
+            color: #6ee7b7
         }
 
+        /* ── CTA Banner ── */
+        .cta-banner {
+            background: linear-gradient(135deg, #0d3b2e, #1a5c42);
+            border-radius: 28px;
+            padding: 4rem 3rem;
+            text-align: center;
+            margin: 2rem auto;
+            max-width: 900px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .cta-banner::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(0, 200, 83, 0.15);
+            border-radius: 50%;
+            top: -100px;
+            right: -50px
+        }
+
+        .cta-banner h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 1rem
+        }
+
+        .cta-banner p {
+            color: #a7f3d0;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.7
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .9rem 2.25rem;
+            background: #00C853;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all .3s;
+            box-shadow: 0 6px 20px rgba(0, 200, 83, 0.4)
+        }
+
+        .btn-cta:hover {
+            background: #00b84a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 200, 83, 0.55)
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: #0d3b2e;
+            color: #6ee7b7;
+            text-align: center;
+            padding: 1.75rem;
+            font-size: .8rem
+        }
+
+        .dark footer {
+            background: #071a12
+        }
+
+        /* ── Animations ── */
         @keyframes fadeUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(24px)
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0)
             }
         }
 
-        /* ── Footer ─────────────────────────────────────────────── */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            font-size: 0.78rem;
-            color: #374151;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        .fade-up {
+            animation: fadeUp .7s ease both
         }
 
-        /* ── Responsive ─────────────────────────────────────────── */
-        @media (max-width: 520px) {
-            nav {
-                padding: 1rem 1.25rem;
-            }
+        .delay-1 {
+            animation-delay: .1s
+        }
 
+        .delay-2 {
+            animation-delay: .2s
+        }
+
+        .delay-3 {
+            animation-delay: .3s
+        }
+
+        .delay-4 {
+            animation-delay: .4s
+        }
+
+        @media(max-width:768px) {
             .hero {
-                padding: 4rem 1rem 2.5rem;
+                flex-direction: column;
+                min-height: auto;
+                padding: 3rem 1.25rem 8rem
             }
 
-            .btn-nav span {
-                display: none;
+            .hero-visual {
+                position: absolute;
+                right: 0;
+                bottom: -30px;
+                top: auto;
+                transform: none;
+                opacity: .25
             }
 
-            .btn-nav {
-                padding: 0.5rem 0.75rem;
+            .hero-circle {
+                width: 220px;
+                height: 220px;
+                font-size: 6rem
+            }
+
+            .hero-wave {
+                width: 100%;
+                height: 50%;
+                border-radius: 0;
+                clip-path: none;
+                top: auto;
+                bottom: 0
+            }
+
+            .stats-bar {
+                gap: 2rem
+            }
+
+            .navbar {
+                padding: .85rem 1.25rem
+            }
+
+            .nav-links {
+                display: none
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="page-wrapper">
 
-        <!-- ── Navbar ── -->
-        <nav>
-            <a href="{% url 'welcome' %}" class="nav-logo" id="logo-link">
-                <div class="logo-icon">🥗</div>
-                <span>MyMeal</span>
-            </a>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="{% url 'welcome' %}" class="logo" id="logo-link">
+            <div class="logo-icon">🥗</div>
+            <span class="logo-text">Nexus<span>Meal</span>Tracker</span>
+        </a>
+        <div class="nav-links">
+            <a href="{% url 'welcome' %}" class="active">Home</a>
+            <a href="{% url 'login' %}">Dashboard</a>
+            <a href="{% url 'login' %}">Track Meals</a>
+            <a href="{% url 'login' %}">Health Hub</a>
+        </div>
+        <div class="nav-actions">
+            <button class="toggle-btn" onclick="toggleTheme()" id="theme-toggle-btn" title="Toggle dark/light"><span
+                    id="toggle-icon">☀️</span></button>
+            <a href="{% url 'login' %}" class="btn-login" id="btn-login">Log In</a>
+            <a href="{% url 'signup' %}" class="btn-signup" id="btn-signup">Get Started</a>
+        </div>
+    </nav>
 
-            <div class="nav-actions">
-                <!-- Login -->
-                <a href="{% url 'login' %}" class="btn-nav" id="btn-login">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                        <polyline points="10 17 15 12 10 7" />
-                        <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    <span>Log In</span>
-                </a>
-
-                <!-- Sign Up -->
-                <a href="{% url 'signup' %}" class="btn-nav" id="btn-signup">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                        <line x1="19" y1="8" x2="19" y2="14" />
-                        <line x1="22" y1="11" x2="16" y2="11" />
-                    </svg>
-                    <span>Sign Up</span>
-                </a>
-            </div>
-        </nav>
-
-        <!-- ── Hero ── -->
-        <section class="hero">
-            <div class="badge">✦ Your Health, Simplified</div>
-
-            <h1>
-                Track Every Meal with<br>
-                <span class="gradient-text">MyMeal</span>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-bg">
+            <div class="blob1"></div>
+            <div class="blob2"></div>
+            <div class="hero-wave"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge fade-up">✦ Smart Nutrition Platform</div>
+            <h1 class="fade-up delay-1">
+                Diet. Nutrition.<br>
+                <span>And Complete</span><br>
+                Wellness.
             </h1>
-
-            <p>
-                Log your meals, count your calories, and build healthy habits —
-                all in one beautifully simple place. Start your wellness journey today.
+            <p class="fade-up delay-2">
+                Nutrition is not about eating less, it's about eating right. Log your meals, track your calories, and
+                build lifelong healthy habits — all in one beautifully simple platform.
             </p>
-
-            <div class="hero-cta">
-                <a href="{% url 'signup' %}" class="btn-primary" id="get-started-btn">
-                    🚀 Get Started Free
-                </a>
-                <a href="{% url 'login' %}" class="btn-ghost" id="learn-more-btn">
-                    Log In →
-                </a>
-            </div>
-        </section>
-
-        <!-- ── Feature Cards ── -->
-        <div class="features">
-            <div class="feature-card">
-                <span class="feature-icon">🍽️</span>
-                <h3>Log Meals Instantly</h3>
-                <p>Add any meal in seconds and keep a clear daily record of everything you eat.</p>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">🔥</span>
-                <h3>Calorie Tracking</h3>
-                <p>Automatically tally your daily calorie intake and stay within your personal goal.</p>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">📊</span>
-                <h3>Smart Insights</h3>
-                <p>Understand your eating patterns with clear summaries and progress over time.</p>
-            </div>
-            <div class="feature-card">
-                <span class="feature-icon">�</span>
-                <h3>Goal Setting</h3>
-                <p>Set targets that match your lifestyle and track your journey to better health.</p>
+            <div class="hero-cta fade-up delay-3">
+                <a href="{% url 'signup' %}" class="btn-primary-lg" id="get-started-btn">🚀 Get Started Free</a>
+                <a href="{% url 'login' %}" class="btn-ghost-lg" id="learn-more-btn">Log In →</a>
             </div>
         </div>
+        <div class="hero-visual">
+            <div class="hero-circle">🥗</div>
+        </div>
+    </section>
 
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item fade-up">
+            <div class="stat-num">{{ meal_count }}</div>
+            <div class="stat-txt">Meals Tracked</div>
+        </div>
+        <div class="stat-item fade-up delay-1">
+            <div class="stat-num">{{ resident_count }}</div>
+            <div class="stat-txt">Active Residents</div>
+        </div>
+        <div class="stat-item fade-up delay-2">
+            <div class="stat-num">AI</div>
+            <div class="stat-txt">Powered Insights</div>
+        </div>
     </div>
+
+        <!-- Features -->
+    <div style="background:#f0fdf4" class="dark:bg-[#0d1f18]" id="features">
+        <div class="section" style="text-align:center">
+            <p class="section-label">What We Offer</p>
+            <h2 class="section-title">Primary Health Plans We Offer</h2>
+            <p class="section-body">Our tools address specific health conditions through evidence-based nutrition
+                tracking and lifestyle management, giving clinicians and residents a complete wellness platform.</p>
+            <div class="feature-grid">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🍽️</div>
+                    <h3>Instant Meal Logging</h3>
+                    <p>Add any meal in seconds with auto-calorie calculation. Keep a complete, timestamped record of
+                        everything consumed.</p>
+                </div>
+                <div class="feature-card fade-up delay-1">
+                    <div class="feature-icon">🔥</div>
+                    <h3>Calorie Intelligence</h3>
+                    <p>Real-time calorie tracking with daily summaries. Powered by the Edamam nutrition API for accurate
+                        macro data.</p>
+                </div>
+                <div class="feature-card fade-up delay-2">
+                    <div class="feature-icon">✨</div>
+                    <h3>AI Personal Chef</h3>
+                    <p>Powered by Gemini AI, get personalized meal suggestions based on your goals, preferences, and
+                        allergy profile.</p>
+                </div>
+                <div class="feature-card fade-up delay-3">
+                    <div class="feature-icon">🏥</div>
+                    <h3>Clinical Oversight</h3>
+                    <p>Managers and dietitians get full analytics dashboards, weekly reviews, and per-resident
+                        nutritional insights.</p>
+                </div>
+                <div class="feature-card fade-up delay-4">
+                    <div class="feature-icon">⚠️</div>
+                    <h3>Allergy Safety System</h3>
+                    <p>Custom allergy keyword detection flags dangerous ingredients before meals are logged, keeping
+                        residents safe.</p>
+                </div>
+                <div class="feature-card fade-up delay-4">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Analytics</h3>
+                    <p>Visual dashboards showing weekly trends, top foods, BMI, and dietary patterns to guide clinical
+                        decisions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div style="padding:4rem 2rem">
+        <div class="cta-banner">
+            <h2>Ready to Transform Your Nutrition Journey?</h2>
+            <p>Join hundreds of residents already tracking their meals with NexusMealTracker. Set up takes less than 2
+                minutes.</p>
+            <a href="{% url 'signup' %}" class="btn-cta" id="cta-signup-btn">🚀 Start Tracking Today</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 <strong style="color:#00C853">NexusMealTracker</strong>. Diet. Nutrition. Complete Wellness.</p>
+    </footer>
+
+    <script>
+        function toggleTheme() { const h = document.documentElement; h.classList.contains('dark') ? (h.classList.remove('dark'), localStorage.setItem('theme', 'light')) : (h.classList.add('dark'), localStorage.setItem('theme', 'dark')); updateIcon() }
+        function updateIcon() { const d = document.documentElement.classList.contains('dark'); document.getElementById('toggle-icon').textContent = d ? '🌙' : '☀️' }
+        document.addEventListener('DOMContentLoaded', updateIcon);
+
+        // Intersection observer for fade-up animations
+        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)' } }) }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-up').forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(24px)'; el.style.transition = 'opacity .7s ease, transform .7s ease'; observer.observe(el) });
+    </script>
 </body>
 
 </html>

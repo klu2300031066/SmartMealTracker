@@ -1,388 +1,498 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}MyMeal{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <title>{% block title %}NexusMealTracker{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { green: '#00C853', dark: '#0d3b2e', mint: '#d4f0de' }
+                    },
+                    fontFamily: { sans: ['Poppins', 'Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <script>(function () { const t = localStorage.getItem('theme'); if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme:dark)').matches)) { document.documentElement.classList.add('dark'); document.documentElement.classList.remove('light') } })()</script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        /* Modern Design System */
+        /* ── Adaptive CSS variables ── */
         :root {
-            --primary: #7c3aed;
-            --secondary: #3b82f6;
-            --accent: #a78bfa;
-            --bg: #0f0c29;
-            --surface: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.08);
-            --text: #e2e8f0;
-            --muted: #94a3b8;
-            --success: #10b981;
+            --text: #1a3c34;
+            --muted: #4b7a6a;
+            --accent: #00C853;
+            --primary: #00C853;
+            --secondary: #00897B;
+            --success: #00C853;
             --error: #ef4444;
-            --sidebar-width: 280px;
+            --border: rgba(0, 0, 0, 0.07);
+            --surface: rgba(255, 255, 255, 0.9);
+            --card-bg: #ffffff;
         }
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        .dark {
+            --text: #d1fae5;
+            --muted: #6ee7b7;
+            --accent: #34d399;
+            --primary: #34d399;
+            --secondary: #2dd4bf;
+            --success: #34d399;
+            --error: #f87171;
+            --border: rgba(255, 255, 255, 0.08);
+            --surface: rgba(26, 60, 52, 0.9);
+            --card-bg: rgba(26, 60, 52, 0.8);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 55%, #24243e 100%);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
         }
 
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(130px);
-            z-index: 0;
-            pointer-events: none;
+        /* ── Input text colors ── */
+        input,
+        textarea,
+        select {
+            color: var(--text) !important;
         }
 
-        body::before {
-            width: 500px;
-            height: 500px;
-            background: rgba(124, 58, 237, 0.15);
-            top: -120px;
-            left: -80px;
+        html:not(.dark) input,
+        html:not(.dark) textarea,
+        html:not(.dark) select {
+            color: #1a3c34 !important;
         }
 
-        body::after {
-            width: 450px;
-            height: 450px;
-            background: rgba(59, 130, 246, 0.12);
-            bottom: -100px;
-            right: -80px;
+        html.dark input,
+        html.dark textarea,
+        html.dark select {
+            color: #d1fae5 !important;
         }
 
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            background: rgba(10, 8, 35, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+        /* ── Light mode: fix white-on-white text from old dark templates ── */
+        html:not(.dark) .card h1,
+        html:not(.dark) .card h2,
+        html:not(.dark) .card h3,
+        html:not(.dark) .card h4 {
+            color: #0d3b2e !important;
         }
 
-        .logo {
+        html:not(.dark) .stat-val,
+        html:not(.dark) .stat-value,
+        html:not(.dark) .stat-lab,
+        html:not(.dark) .stat-label {
+            color: #0d3b2e !important;
+        }
+
+        html:not(.dark) .section-title,
+        html:not(.dark) .food-name,
+        html:not(.dark) .food-meta {
+            color: #1a3c34 !important;
+        }
+
+        html:not(.dark) td[style*="color: #fff"],
+        html:not(.dark) td[style*="color:#fff"],
+        html:not(.dark) span[style*="color: #fff"],
+        html:not(.dark) span[style*="color:#fff"],
+        html:not(.dark) p[style*="color: #fff"],
+        html:not(.dark) p[style*="color:#fff"],
+        html:not(.dark) h2[style*="color: #fff"],
+        html:not(.dark) h2[style*="color:#fff"],
+        html:not(.dark) h3[style*="color: #fff"],
+        html:not(.dark) h3[style*="color:#fff"] {
+            color: #0d3b2e !important;
+        }
+
+        .dark .stat-val,
+        .dark .stat-value {
+            color: #d1fae5 !important;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e8f5e9;
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 24px rgba(0, 200, 83, 0.06);
+        }
+
+        .dark .card {
+            background: rgba(26, 60, 52, 0.8);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ── Sidebar ── */
+        .sidebar-link {
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #4b7a6a;
+            transition: all 0.2s;
             text-decoration: none;
-            font-weight: 800;
-            font-size: 1.25rem;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
-        .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 9px;
+        .sidebar-link:hover {
+            background: rgba(0, 200, 83, 0.08);
+            color: #00C853;
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.12), rgba(0, 137, 123, 0.12));
+            color: #00C853;
+            box-shadow: inset 0 0 0 1px rgba(0, 200, 83, 0.2);
+        }
+
+        .dark .sidebar-link {
+            color: #6ee7b7;
+        }
+
+        .dark .sidebar-link:hover {
+            background: rgba(0, 200, 83, 0.1);
+            color: #34d399;
+        }
+
+        .dark .sidebar-link.active {
+            color: #34d399;
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.15), rgba(0, 137, 123, 0.15));
+        }
+
+        .sidebar-section {
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #a7c4bc;
+            padding: 1rem 1rem 0.4rem;
+        }
+
+        .dark .sidebar-section {
+            color: #374151;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #00C853;
+            color: #fff;
+            font-weight: 700;
+            padding: 0.65rem 1.4rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(0, 200, 83, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: #00b84a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 200, 83, 0.45);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            color: #00C853;
+            font-weight: 700;
+            padding: 0.65rem 1.4rem;
+            border-radius: 10px;
+            border: 2px solid #00C853;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-size: 0.875rem;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover {
+            background: #00C853;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .dark .btn-outline {
+            color: #34d399;
+            border-color: #34d399;
+        }
+
+        .dark .btn-outline:hover {
+            background: #34d399;
+            color: #0d3b2e;
+        }
+
+        /* ── Typography helpers ── */
+        .heading-xl {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: #0d3b2e;
+        }
+
+        .dark .heading-xl {
+            color: #d1fae5;
+        }
+
+        .subtext {
+            color: #4b7a6a;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+
+        .dark .subtext {
+            color: #6ee7b7;
+        }
+
+        /* ── Table defaults ── */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        thead th {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a7c4bc;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e8f5e9;
+        }
+
+        .dark thead th {
+            color: #374151;
+            border-color: #1a3c34;
+        }
+
+        tbody td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #f0fdf4;
+            font-size: 0.875rem;
+            color: #1a3c34;
+        }
+
+        .dark tbody td {
+            border-color: #1a3c34;
+            color: #d1fae5;
+        }
+
+        tbody tr:hover td {
+            background: #f0fdf4;
+        }
+
+        .dark tbody tr:hover td {
+            background: rgba(0, 200, 83, 0.05);
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0fdf4;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #0d1f18;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #a7f3d0;
+            border-radius: 99px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #1a3c34;
+        }
+
+        /* ── Toggle button ── */
+        .toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            border: 1.5px solid #a7f3d0;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-            -webkit-text-fill-color: initial;
-        }
-
-        .user-nav {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .username {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        .btn-logout {
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 700;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
-        .btn-logout:hover {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-            transform: translateY(-1px);
+        .dark .toggle-btn {
+            background: #1a3c34;
+            border-color: #374151;
         }
 
-        .page-container {
-            flex: 1;
-            padding-top: 64px;
-            display: flex;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(10, 8, 35, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border);
-            height: calc(100vh - 64px);
-            position: fixed;
-            left: 0;
-            top: 64px;
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            z-index: 90;
-            overflow-y: auto;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1.25rem;
-            text-decoration: none;
-            color: var(--muted);
-            font-weight: 600;
-            border-radius: 1rem;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-link i {
-            font-size: 1.25rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        .sidebar-link:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar-link.active {
-            color: #fff;
-            background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.2));
-            border: 1px solid var(--border);
-        }
-
-        .sidebar-section-title {
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #475569;
-            padding: 1.25rem 1.25rem 0.5rem;
-        }
-
-        .content {
-            flex: 1;
-            padding: 2.5rem 2rem;
-            margin-left: var(--sidebar-width);
-            width: calc(100% - var(--sidebar-width));
-            min-height: calc(100vh - 64px);
-        }
-
-        .content-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .card {
-            background: var(--surface);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            margin-bottom: 2rem;
-        }
-
-        .heading-xl {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(90deg, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtext {
-            color: var(--muted);
-            font-size: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 1024px) {
-            :root {
-                --sidebar-width: 80px;
-            }
-
-            .sidebar-link span,
-            .sidebar-section-title {
-                display: none;
-            }
-
-            .sidebar-link {
-                justify-content: center;
-                padding: 1rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-
-            .content {
-                margin-left: 0;
-                width: 100%;
-            }
+        .toggle-btn:hover {
+            transform: scale(1.1);
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
-    <header class="topbar">
-        {% if request.user.is_superuser %}
-        <a href="{% url 'admin_welcome' %}" class="logo">
-            <div class="logo-icon">🛡️</div> MyMeal Admin
-        </a>
-        {% elif request.user.is_staff %}
-        <a href="{% url 'manager_dashboard' %}" class="logo">
-            <div class="logo-icon">🏥</div> MyMeal Care
-        </a>
-        {% else %}
-        <a href="{% url 'dashboard' %}" class="logo">
-            <div class="logo-icon">🥗</div> MyMeal
-        </a>
-        {% endif %}
-        <div class="user-nav">
-            {% if request.user.is_staff %}
-            <span class="badge-count"
-                style="position: static; padding: 0.3rem 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);">
-                {% if request.user.is_superuser %}🛡️ Admin{% else %}🛡️ Manager{% endif %}</span>
+<body class="min-h-screen bg-white dark:bg-[#0f1a16] text-[#1a3c34] dark:text-[#d1fae5] transition-colors duration-300">
+
+    <!-- Top Bar -->
+    <header
+        class="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 bg-white/90 dark:bg-[#0d1f18]/90 backdrop-blur-md border-b border-[#e8f5e9] dark:border-[#1a3c34] transition-colors duration-300"
+        style="box-shadow:0 1px 0 rgba(0,0,0,0.04)">
+
+        <div class="flex items-center gap-3">
+            {% if request.user.is_superuser %}
+            <a href="{% url 'admin_welcome' %}" class="flex items-center gap-2.5 no-underline">
+                <div
+                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm shadow-md">
+                    🛡️</div>
+                <span class="font-bold text-[#0d3b2e] dark:text-[#d1fae5] text-base tracking-tight"
+                    style="font-family:'Poppins',sans-serif">NexusMealTracker <span
+                        class="text-violet-500 text-sm">Admin</span></span>
+            </a>
+            {% elif request.user.is_staff %}
+            <a href="{% url 'manager_dashboard' %}" class="flex items-center gap-2.5 no-underline">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-md"
+                    style="background:linear-gradient(135deg,#00C853,#00897B)">🏥</div>
+                <span class="font-bold text-[#0d3b2e] dark:text-[#d1fae5] text-base tracking-tight"
+                    style="font-family:'Poppins',sans-serif">NexusMealTracker <span style="color:#00C853"
+                        class="text-sm">Care</span></span>
+            </a>
+            {% else %}
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5 no-underline">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-md"
+                    style="background:linear-gradient(135deg,#00C853,#00897B)">🥗</div>
+                <span class="font-bold text-[#0d3b2e] dark:text-[#d1fae5] text-base tracking-tight"
+                    style="font-family:'Poppins',sans-serif">NexusMealTracker</span>
+            </a>
             {% endif %}
-            <span class="username">👤 {{ request.user.username }}</span>
-            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+            {% if request.user.is_staff %}
+            <span
+                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold {% if request.user.is_superuser %}bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800{% else %}bg-[#d4f0de] dark:bg-[#1a3c34] text-[#065f46] dark:text-[#34d399] border border-[#a7f3d0] dark:border-[#1a3c34]{% endif %}">
+                {% if request.user.is_superuser %}🛡️ Admin{% else %}🏥 Manager{% endif %}
+            </span>
+            {% endif %}
+            <span class="text-sm font-semibold text-[#4b7a6a] dark:text-[#6ee7b7]">👤 {{ request.user.username }}</span>
+            <button onclick="toggleTheme()" class="toggle-btn" id="theme-toggle-btn" title="Toggle dark/light"><span
+                    id="toggle-icon">☀️</span></button>
+            <a href="{% url 'logout' %}"
+                class="text-sm font-bold px-4 py-1.5 rounded-full border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white transition-all duration-300">Logout</a>
         </div>
     </header>
 
-    <div class="page-container">
+    <div class="flex pt-16 min-h-screen">
         {% if request.user.is_authenticated %}
-        <aside class="sidebar">
+        <aside
+            class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 flex flex-col py-5 px-3 overflow-y-auto z-40 bg-white dark:bg-[#0d1f18] border-r border-[#e8f5e9] dark:border-[#1a3c34] transition-colors duration-300"
+            style="box-shadow:1px 0 0 rgba(0,0,0,0.04)">
+
             {% if request.user.is_superuser %}
-            <span class="sidebar-section-title" style="color: var(--accent);">🛡️ ADMIN ONLY</span>
+            <span class="sidebar-section">🛡️ Admin</span>
             <a href="{% url 'admin_welcome' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'admin_welcome' %}active{% endif %}">
-                <i>🛡️</i> <span>Admin Dashboard</span>
-            </a>
-            <a href="/admin/" class="sidebar-link" target="_blank">
-                <i>⚙️</i> <span>System Database</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'admin_welcome' %}active{% endif %}"><i>🛡️</i><span>Admin
+                    Dashboard</span></a>
+            <a href="{% url 'admin_manage_tickets' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'admin_manage_tickets' %}active{% endif %}"><i>🎫</i><span>Support
+                    Tickets</span></a>
+            <a href="/admin/" class="sidebar-link" target="_blank"><i>⚙️</i><span>System Database</span></a>
+
+            <form method="POST" action="{% url 'admin_toggle_maintenance' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-link"
+                    style="width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; padding-left: 1rem;">
+                    {% if system_settings.is_maintenance_mode %}
+                    <i style="font-style: normal;">🔴</i><span style="color: #ef4444; font-weight: 700;">Maintenance
+                        ON</span>
+                    {% else %}
+                    <i style="font-style: normal;">⚪</i><span>Maintenance OFF</span>
+                    {% endif %}
+                </button>
+            </form>
             {% endif %}
 
             {% if not request.user.is_superuser and request.user.is_staff %}
-            <span class="sidebar-section-title" style="color: var(--success); margin-top: 1rem;">🛡️ MANAGER ONLY</span>
+            <span class="sidebar-section">🏥 Manager Console</span>
             <a href="{% url 'manager_dashboard' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
-                <i>🏥</i> <span>Resident List</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}"><i>🏥</i><span>Resident
+                    List</span></a>
             <a href="{% url 'patient_food_info' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'patient_food_info' %}active{% endif %}">
-                <i>📊</i> <span>Food Analytics</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'patient_food_info' %}active{% endif %}"><i>📊</i><span>Food
+                    Analytics</span></a>
             <a href="{% url 'manager_inventory_search' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'manager_inventory_search' %}active{% endif %}">
-                <i>📦</i> <span>User Inventory</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'manager_inventory_search' %}active{% endif %}"><i>📦</i><span>User
+                    Inventory</span></a>
             <a href="{% url 'send_weekly_review' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'send_weekly_review' %}active{% endif %}">
-                <i>📨</i> <span>Send Review</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'send_weekly_review' %}active{% endif %}"><i>📨</i><span>Send
+                    Review</span></a>
+            <a href="{% url 'manager_raise_ticket' %}"
+                class="sidebar-link {% if request.resolver_match.url_name == 'manager_raise_ticket' %}active{% endif %}"><i>🎟️</i><span>Raise
+                    Ticket</span></a>
             {% endif %}
 
             {% if not request.user.is_staff %}
             {% if request.user.username != 'manager' %}
             {% if request.user.username != 'Manager' %}
-            <span class="sidebar-section-title">Navigation</span>
+            <span class="sidebar-section">Navigation</span>
             <a href="{% url 'dashboard' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i>🏠</i> <span>Dashboard</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i>🏠</i><span>Dashboard</span></a>
             <a href="{% url 'track_meals' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'track_meals' %}active{% endif %}">
-                <i>📊</i> <span>Track Meals</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'track_meals' %}active{% endif %}"><i>📊</i><span>Track
+                    Meals</span></a>
             <a href="{% url 'inventory' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}">
-                <i>📦</i> <span>Inventory</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}"><i>📦</i><span>Inventory</span></a>
             <a href="{% url 'ai_meal_page' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'ai_meal_page' %}active{% endif %}">
-                <i>✨</i> <span>AI Personal Chef</span>
-            </a>
-            <span class="sidebar-section-title">Health & Safety</span>
+                class="sidebar-link {% if request.resolver_match.url_name == 'ai_meal_page' %}active{% endif %}"><i>✨</i><span>AI
+                    Personal Chef</span></a>
+            <span class="sidebar-section">Health &amp; Safety</span>
             <a href="{% url 'weekly_review_inbox' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'weekly_review_inbox' %}active{% endif %}">
-                <i>📬</i> <span>Weekly Reviews</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'weekly_review_inbox' %}active{% endif %}"><i>📬</i><span>Weekly
+                    Reviews</span></a>
             <a href="{% url 'health_hub' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'health_hub' %}active{% endif %}">
-                <i>🏥</i> <span>Health Hub</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'health_hub' %}active{% endif %}"><i>🏥</i><span>Health
+                    Hub</span></a>
             <a href="{% url 'manage_allergies' %}"
-                class="sidebar-link {% if request.resolver_match.url_name == 'manage_allergies' %}active{% endif %}">
-                <i>👤</i> <span>Profile</span>
-            </a>
+                class="sidebar-link {% if request.resolver_match.url_name == 'manage_allergies' %}active{% endif %}"><i>👤</i><span>Profile</span></a>
             {% endif %}
             {% endif %}
             {% endif %}
+
         </aside>
         {% endif %}
 
-        <main class="content">
-            <div class="content-inner">
+        <main
+            class="flex-1 {% if request.user.is_authenticated %}ml-64{% endif %} p-8 min-h-screen bg-[#f9fffe] dark:bg-[#0f1a16] transition-colors duration-300">
+            <div class="max-w-6xl mx-auto">
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
+    <script>
+        function toggleTheme() { const h = document.documentElement; h.classList.contains('dark') ? (h.classList.remove('dark'), h.classList.add('light'), localStorage.setItem('theme', 'light')) : (h.classList.add('dark'), h.classList.remove('light'), localStorage.setItem('theme', 'dark')); updateIcon() }
+        function updateIcon() { const d = document.documentElement.classList.contains('dark'); const i = document.getElementById('toggle-icon'); if (i) i.textContent = d ? '🌙' : '☀️' }
+        document.addEventListener('DOMContentLoaded', updateIcon);
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 

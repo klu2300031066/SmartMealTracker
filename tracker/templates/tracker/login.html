@@ -4,349 +4,400 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Log in to your MyMeal account and continue your meal tracking journey.">
-    <title>Log In – MyMeal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <meta name="description" content="Log in to your NexusMealTracker account.">
+    <title>Log In – NexusMealTracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>(function () { const t = localStorage.getItem('theme'); if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme:dark)').matches)) { document.documentElement.classList.add('dark') } })()</script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <style>
-        *,
-        *::before,
-        *::after {
+        * {
             box-sizing: border-box;
             margin: 0;
-            padding: 0;
+            padding: 0
         }
 
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            color: #e2e8f0;
             display: flex;
             flex-direction: column;
+            background: #f0fdf4;
+            color: #1a3c34
         }
 
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(110px);
-            z-index: 0;
-            pointer-events: none;
+        .dark body {
+            background: #0f1a16;
+            color: #d1fae5
         }
 
-        body::before {
-            width: 450px;
-            height: 450px;
-            background: rgba(124, 58, 237, 0.18);
-            top: -100px;
-            left: -100px;
-        }
-
-        body::after {
-            width: 400px;
-            height: 400px;
-            background: rgba(59, 130, 246, 0.15);
-            bottom: -80px;
-            right: -80px;
-        }
-
-        /* ── Navbar ── */
-        nav {
-            position: relative;
-            z-index: 10;
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid #e8f5e9;
+            padding: 1rem 2rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 1.1rem 2.5rem;
-            background: rgba(15, 12, 41, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            justify-content: space-between
         }
 
-        .nav-logo {
+        .dark .navbar {
+            background: rgba(15, 26, 22, 0.92);
+            border-color: #1a3c34
+        }
+
+        .logo {
             display: flex;
             align-items: center;
-            gap: 0.55rem;
-            text-decoration: none;
+            gap: .5rem;
+            text-decoration: none
         }
 
         .logo-icon {
-            width: 34px;
-            height: 34px;
-            background: linear-gradient(135deg, #7c3aed, #3b82f6);
-            border-radius: 9px;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00C853, #00897B);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3)
         }
 
         .logo-text {
-            font-size: 1.2rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
             font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
+            color: #0d3b2e
         }
 
-        .btn-nav-filled {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.45rem 1.1rem;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-            border: none;
-            border-radius: 0.55rem;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 600;
+        .dark .logo-text {
+            color: #d1fae5
+        }
+
+        .logo-text span {
+            color: #00C853
+        }
+
+        .btn-nav {
+            padding: .45rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: .85rem;
             text-decoration: none;
-            box-shadow: 0 3px 12px rgba(124, 58, 237, 0.35);
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: all .2s
         }
 
-        .btn-nav-filled:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(124, 58, 237, 0.5);
+        .btn-nav-outline {
+            border: 2px solid #00C853;
+            color: #00C853
         }
 
-        /* ── Page body ── */
+        .btn-nav-outline:hover {
+            background: #00C853;
+            color: #fff
+        }
+
+        .btn-nav-fill {
+            background: #00C853;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3)
+        }
+
+        .btn-nav-fill:hover {
+            background: #00b84a;
+            transform: translateY(-1px)
+        }
+
+        .toggle-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #d4f0de;
+            border: 1.5px solid #a7f3d0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .9rem;
+            transition: all .2s
+        }
+
+        .dark .toggle-btn {
+            background: #1a3c34;
+            border-color: #374151
+        }
+
         .page-body {
             position: relative;
-            z-index: 1;
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 3rem 1rem;
+            overflow: hidden
         }
 
-        /* ── Auth card ── */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0
+        }
+
+        .blob1 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 200, 83, 0.12) 0%, transparent 70%);
+            top: -150px;
+            right: -100px
+        }
+
+        .blob2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(0, 137, 123, 0.1) 0%, transparent 70%);
+            bottom: -80px;
+            left: -80px
+        }
+
         .auth-card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 1.35rem;
-            padding: 2.25rem 2.5rem 2.5rem;
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            border: 1px solid #e8f5e9;
+            border-radius: 24px;
+            padding: 2.5rem;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-            animation: fadeUp 0.5s ease both;
+            max-width: 440px;
+            box-shadow: 0 8px 40px rgba(0, 200, 83, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)
+        }
+
+        .dark .auth-card {
+            background: #1a3c34;
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4)
         }
 
         @keyframes fadeUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(20px)
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0)
             }
         }
 
-        .auth-header {
-            text-align: center;
-            margin-bottom: 1.75rem;
+        .anim-up {
+            animation: fadeUp .5s ease both
         }
 
-        .auth-icon {
-            font-size: 2.2rem;
-            display: block;
-            margin-bottom: 0.6rem;
+        .auth-icon-wrap {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #d4f0de, #a7f3d0);
+            border: 1px solid #a7f3d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1.25rem
         }
 
-        .auth-header h1 {
+        .dark .auth-icon-wrap {
+            background: linear-gradient(135deg, #0d3b2e, #1a3c34);
+            border-color: rgba(255, 255, 255, 0.1)
+        }
+
+        .auth-title {
+            font-family: 'Poppins', sans-serif;
             font-size: 1.65rem;
             font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
+            color: #0d3b2e;
+            text-align: center;
+            margin-bottom: .35rem
         }
 
-        .auth-header p {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 0.3rem;
+        .dark .auth-title {
+            color: #d1fae5
         }
 
-        /* ── Non-field errors (invalid credentials) ── */
-        .non-field-errors {
-            background: rgba(248, 113, 113, 0.10);
-            border: 1px solid rgba(248, 113, 113, 0.25);
-            border-radius: 0.6rem;
-            padding: 0.6rem 0.85rem;
-            margin-bottom: 1rem;
-            list-style: none;
+        .auth-sub {
+            font-size: .875rem;
+            color: #4b7a6a;
+            text-align: center;
+            margin-bottom: 2rem
         }
 
-        .non-field-errors li {
-            font-size: 0.82rem;
-            color: #f87171;
+        .dark .auth-sub {
+            color: #6ee7b7
         }
 
-        /* ── Form fields ── */
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1.35rem;
-        }
-
-        .field-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .field-wrap label {
-            font-size: 0.75rem;
-            font-weight: 600;
+        label {
+            display: block;
+            font-size: .75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #94a3b8;
+            letter-spacing: .07em;
+            color: #4b7a6a;
+            margin-bottom: .4rem
         }
 
-        .field-wrap input {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.11);
-            border-radius: 0.6rem;
-            padding: 0.65rem 0.9rem;
-            color: #f1f5f9;
-            font-family: inherit;
-            font-size: 0.93rem;
-            outline: none;
+        .dark label {
+            color: #6ee7b7
+        }
+
+        input {
             width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            padding: .75rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: .93rem;
+            background: #f0fdf4;
+            border: 1.5px solid #d4f0de;
+            border-radius: 10px;
+            color: #0d3b2e;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s
         }
 
-        .field-wrap input::placeholder {
-            color: #475569;
+        .dark input {
+            background: #0d1f18;
+            border-color: #1a3c34;
+            color: #d1fae5
         }
 
-        .field-wrap input:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+        input:focus {
+            border-color: #00C853;
+            box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.12)
         }
 
-        .errorlist {
+        input::placeholder {
+            color: #a7c4bc
+        }
+
+        ul.errorlist {
             list-style: none;
-            margin-top: 0.3rem;
+            margin-top: .4rem
         }
 
-        .errorlist li {
-            font-size: 0.78rem;
-            color: #f87171;
-            padding: 0.25rem 0.6rem;
-            background: rgba(248, 113, 113, 0.1);
-            border-radius: 0.4rem;
-            border: 1px solid rgba(248, 113, 113, 0.2);
+        ul.errorlist li {
+            font-size: .78rem;
+            color: #ef4444;
+            padding: .3rem .75rem;
+            background: #fef2f2;
+            border-radius: 8px;
+            border: 1px solid #fecaca
         }
 
-        /* ── Submit button ── */
+        .error-box {
+            padding: .75rem 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            margin-bottom: 1.25rem
+        }
+
+        .dark .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3)
+        }
+
+        .error-box p {
+            font-size: .875rem;
+            color: #dc2626;
+            font-weight: 600
+        }
+
         .btn-submit {
             width: 100%;
-            padding: 0.78rem;
-            background: linear-gradient(90deg, #7c3aed, #3b82f6);
-            border: none;
-            border-radius: 0.65rem;
+            padding: .85rem;
+            background: #00C853;
             color: #fff;
-            font-family: inherit;
-            font-size: 0.97rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
             font-weight: 700;
+            border: none;
+            border-radius: 12px;
             cursor: pointer;
-            letter-spacing: 0.02em;
-            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: all .25s;
+            box-shadow: 0 4px 16px rgba(0, 200, 83, 0.35);
+            margin-top: .5rem
         }
 
         .btn-submit:hover {
+            background: #00b84a;
             transform: translateY(-2px);
-            box-shadow: 0 8px 26px rgba(124, 58, 237, 0.55);
+            box-shadow: 0 8px 24px rgba(0, 200, 83, 0.45)
         }
 
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        /* ── Footer link ── */
         .auth-footer {
             text-align: center;
-            margin-top: 1.35rem;
-            font-size: 0.83rem;
-            color: #64748b;
+            margin-top: 1.5rem;
+            font-size: .875rem;
+            color: #4b7a6a
+        }
+
+        .dark .auth-footer {
+            color: #6ee7b7
         }
 
         .auth-footer a {
-            color: #a78bfa;
-            text-decoration: none;
-            font-weight: 600;
+            color: #00C853;
+            font-weight: 700;
+            text-decoration: none
         }
 
         .auth-footer a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            nav {
-                padding: 1rem 1.25rem;
-            }
-
-            .auth-card {
-                padding: 1.75rem 1.25rem 2rem;
-            }
+            text-decoration: underline
         }
     </style>
 </head>
 
 <body>
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
 
-    <!-- Navbar -->
-    <nav>
-        <a href="{% url 'welcome' %}" class="nav-logo" id="logo-link">
+    <nav class="navbar">
+        <a href="{% url 'welcome' %}" class="logo" id="logo-link">
             <div class="logo-icon">🥗</div>
-            <span class="logo-text">MyMeal</span>
+            <span class="logo-text">Nexus<span>Meal</span>Tracker</span>
         </a>
-        <a href="{% url 'signup' %}" class="btn-nav-filled" id="nav-signup-btn">Sign Up</a>
+        <div style="display:flex;align-items:center;gap:.75rem">
+            <button onclick="toggleTheme()" class="toggle-btn" id="theme-toggle-btn" title="Toggle dark/light"><span
+                    id="toggle-icon">☀️</span></button>
+            <a href="{% url 'signup' %}" class="btn-nav btn-nav-fill" id="nav-signup-btn">Sign Up</a>
+        </div>
     </nav>
 
-    <!-- Card -->
     <div class="page-body">
-        <div class="auth-card">
+        <div class="auth-card anim-up">
+            <div class="auth-icon-wrap">👋</div>
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-sub">Log in to continue your meal tracking journey.</p>
 
-            <div class="auth-header">
-                <span class="auth-icon">👋</span>
-                <h1>Welcome Back</h1>
-                <p>Log in to continue your meal tracking journey.</p>
-            </div>
-
-            <!-- Non-field errors (e.g. wrong password) -->
             {% if form.non_field_errors %}
-            <ul class="non-field-errors">
+            <div class="error-box">
                 {% for error in form.non_field_errors %}
-                <li>⚠️ {{ error }}</li>
+                <p>⚠️ {{ error }}</p>
                 {% endfor %}
-            </ul>
+            </div>
             {% endif %}
 
             <form method="POST" id="login-form">
                 {% csrf_token %}
-                <div class="field-group">
-
+                <div style="display:flex;flex-direction:column;gap:1.1rem;margin-bottom:1.5rem">
                     {% for field in form %}
-                    <div class="field-wrap">
+                    <div>
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}
@@ -358,18 +409,19 @@
                         {% endif %}
                     </div>
                     {% endfor %}
-
                 </div>
                 <button type="submit" class="btn-submit" id="login-submit-btn">🔑 Log In</button>
             </form>
-
-            <p class="auth-footer">
-                Don't have an account? <a href="{% url 'signup' %}" id="goto-signup-link">Sign up free</a>
-            </p>
-
+            <p class="auth-footer">Don't have an account? <a href="{% url 'signup' %}" id="goto-signup-link">Sign up
+                    free</a></p>
         </div>
     </div>
 
+    <script>
+        function toggleTheme() { const h = document.documentElement; h.classList.contains('dark') ? (h.classList.remove('dark'), localStorage.setItem('theme', 'light')) : (h.classList.add('dark'), localStorage.setItem('theme', 'dark')); updateIcon() }
+        function updateIcon() { document.getElementById('toggle-icon').textContent = document.documentElement.classList.contains('dark') ? '🌙' : '☀️' }
+        document.addEventListener('DOMContentLoaded', updateIcon);
+    </script>
 </body>
 
 </html>

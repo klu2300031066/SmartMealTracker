@@ -1,0 +1,30 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}System Maintenance - NexusMealTracker{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 4rem auto; text-align: center; padding: 4rem 2rem;">
+    <div style="font-size: 4rem; margin-bottom: 2rem;">🛠️</div>
+    <h1 class="heading-xl" style="margin-bottom: 1rem; color: var(--text);">System Currently Under Maintenance</h1>
+    <p class="subtext" style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+        We are currently performing scheduled maintenance to improve the platform. The system is temporarily unavailable
+        for regular users.
+        <br><br>
+        Please try again later. Thank you for your patience!
+    </p>
+    {% if request.user.is_authenticated %}
+    <div
+        style="margin-top: 2rem; padding: 1rem; border-radius: 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border);">
+        <p style="font-size: 0.85rem; color: var(--muted); font-weight: 600; text-transform: uppercase;">You are logged
+            in as: <span style="color: var(--text);">{{ request.user.username }}</span></p>
+        <a href="{% url 'logout' %}" class="btn-outline"
+            style="margin-top: 1rem; font-size: 0.8rem; padding: 0.4rem 1rem;">Logout</a>
+    </div>
+    {% else %}
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'login' %}" class="btn-primary" style="font-size: 0.9rem; padding: 0.6rem 1.5rem;">Admin
+            Login</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

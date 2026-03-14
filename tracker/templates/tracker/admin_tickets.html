@@ -1,0 +1,92 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Manage Tickets - NexusMealTracker Admin{% endblock %}
+
+{% block content %}
+<div class="welcome-section"
+    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+    <div>
+        <h1 class="heading-xl">🎫 Support Tickets</h1>
+        <p class="subtext">Review and resolve issues raised by managers.</p>
+    </div>
+    <form method="POST" style="margin: 0;"
+        onsubmit="return confirm('Are you sure you want to permanently delete ALL tickets?');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear_all">
+        <button type="submit" class="btn-outline" style="border-color: var(--error); color: var(--error);">🗑️ Clear All
+            Tickets</button>
+    </form>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:1rem; margin-bottom:2rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); font-weight:600; {% if message.tags == 'success' %}color: var(--success);{% else %}color: var(--error);{% endif %}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card" style="padding: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text);">Open & Resolved Tickets
+    </h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th
+                        style="text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Date</th>
+                    <th
+                        style="text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Manager</th>
+                    <th
+                        style="text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Issue</th>
+                    <th
+                        style="text-align: right; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td
+                        style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--muted);">
+                        {{ ticket.created_at|date:"d M Y H:i" }}</td>
+                    <td
+                        style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text);">
+                        {{ ticket.manager.username|capfirst }}</td>
+                    <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border);">
+                        <div style="font-weight: 700; color: var(--text);">{{ ticket.subject }}</div>
+                        <div style="font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; max-width: 400px;">
+                            {{ ticket.message }}
+                        </div>
+                    </td>
+                    <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); text-align: right;">
+                        {% if ticket.is_resolved %}
+                        <span
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);">✅
+                            Resolved</span>
+                        {% else %}
+                        <form method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                            <button type="submit" class="btn-primary"
+                                style="padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 0.5rem; background: var(--success); text-decoration: none;">Mark
+                                Resolved</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 3rem; color: var(--muted);">No tickets found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

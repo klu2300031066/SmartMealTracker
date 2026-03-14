@@ -1,4 +1,4 @@
-import os
+﻿import os
 import re
 import json
 import requests as http_requests
@@ -13,7 +13,7 @@ from django.http import JsonResponse
 from django.db.models import Sum
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
-from .models import Meal, InventoryItem, DailyMeal, UserProfile, UserAllergy, ManagerMessage
+from .models import Meal, InventoryItem, DailyMeal, UserProfile, UserAllergy, ManagerMessage, SupportTicket, SystemSettings
 from datetime import timedelta
 import google.generativeai as genai
 from .utils import render_to_pdf
@@ -139,7 +139,13 @@ def welcome(request):
         if request.user.is_staff or request.user.username.lower() == 'manager':
             return redirect('manager_dashboard')
         return redirect('dashboard')
-    return render(request, 'tracker/index.html')
+    from .models import DailyMeal
+    meal_count = DailyMeal.objects.count()
+    resident_count = User.objects.filter(is_staff=False, is_superuser=False).count()
+    return render(request, 'tracker/index.html', {
+        'meal_count': meal_count,
+        'resident_count': resident_count,
+    })
 
 
 # ── Helper: resolve calories (cache → API) ────────────────────────────────────
@@ -854,11 +860,37 @@ def login_view(request):
 
 
 @login_required(login_url='login')
+def admin_toggle_maintenance(request):
+    if not request.user.is_superuser:
+        messages.error(request, '🚫 Access denied. Admin access only.')
+        return redirect('manager_dashboard' if request.user.is_staff else 'dashboard')
+
+    if request.method == 'POST':
+        settings = SystemSettings.get_settings()
+        settings.is_maintenance_mode = not settings.is_maintenance_mode
+        settings.save()
+        status = "ENABLED" if settings.is_maintenance_mode else "DISABLED"
+        messages.success(request, f'⚙️ Maintenance Mode {status}.')
+
+    # Redirect back to where they came from
+    return redirect(request.META.get('HTTP_REFERER', 'admin_welcome'))
+
+
+@login_required(login_url='login')
 def admin_welcome(request):
     """Custom dashboard for superusers with full user management."""
     if not request.user.is_superuser:
         messages.error(request, '🚫 Access denied. Admin access only.')
         return redirect('manager_dashboard' if request.user.is_staff else 'dashboard')
+
+    settings = SystemSettings.get_settings()
+
+    if request.method == 'POST' and request.POST.get('action') == 'toggle_maintenance':
+        settings.is_maintenance_mode = not settings.is_maintenance_mode
+        settings.save()
+        status = "ENABLED" if settings.is_maintenance_mode else "DISABLED"
+        messages.success(request, f'⚙️ Maintenance Mode {status}.')
+        return redirect('admin_welcome')
 
     managers = User.objects.filter(is_staff=True, is_superuser=False).order_by('username')
     residents = User.objects.filter(is_staff=False, is_superuser=False).order_by('username')
@@ -873,6 +905,7 @@ def admin_welcome(request):
         'inventory_items': inventory_items,
         'managers': managers,
         'residents': residents,
+        'maintenance_mode': settings.is_maintenance_mode,
     }
     return render(request, 'tracker/admin_welcome.html', context)
 
@@ -939,11 +972,70 @@ def admin_delete_user(request, user_id):
     return redirect('admin_welcome')
 
 
+# ── Support Tickets (Admin) ───────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def admin_manage_tickets(request):
+    """Admin views and resolves support tickets."""
+    if not request.user.is_superuser:
+        messages.error(request, '🚫 Access denied.')
+        return redirect('manager_dashboard' if request.user.is_staff else 'dashboard')
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'clear_all':
+            count, _ = SupportTicket.objects.all().delete()
+            messages.success(request, f'🗑️ Successfully cleared all {count} tickets.')
+            return redirect('admin_manage_tickets')
+
+        ticket_id = request.POST.get('ticket_id')
+        if ticket_id:
+            try:
+                ticket = SupportTicket.objects.get(id=ticket_id)
+                ticket.is_resolved = True
+                ticket.save()
+                messages.success(request, f'✅ Ticket "{ticket.subject}" marked as resolved.')
+            except SupportTicket.DoesNotExist:
+                messages.error(request, 'Ticket not found.')
+        return redirect('admin_manage_tickets')
+
+    tickets = SupportTicket.objects.all()
+    return render(request, 'tracker/admin_tickets.html', {'tickets': tickets})
+
+
+# ── Support Tickets (Manager) ─────────────────────────────────────────────────
+
+@login_required(login_url='login')
+def manager_raise_ticket(request):
+    """Manager creates a support ticket for admins."""
+    is_manager = request.user.is_staff or request.user.username.lower() == 'manager'
+    if not is_manager:
+        messages.error(request, '🚫 Access denied. Manager access only.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        subject = request.POST.get('subject', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        if not subject or not message:
+            messages.error(request, 'Please provide both subject and message.')
+        else:
+            SupportTicket.objects.create(
+                manager=request.user,
+                subject=subject,
+                message=message
+            )
+            messages.success(request, '🎟️ Support ticket successfully raised to Admin!')
+            return redirect('manager_raise_ticket')
+
+    my_tickets = SupportTicket.objects.filter(manager=request.user)
+    return render(request, 'tracker/manager_raise_ticket.html', {'tickets': my_tickets})
+
+
 # ── Logout ────────────────────────────────────────────────────────────────────
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('welcome')
 
 
 # ── Delete Meal (from dashboard) ─────────────────────────────────────────────

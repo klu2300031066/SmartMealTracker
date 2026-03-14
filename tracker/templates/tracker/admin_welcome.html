@@ -1,18 +1,17 @@
 {% extends 'tracker/base.html' %}
-
-{% block title %}System Administration - MyMeal{% endblock %}
+{% block title %}System Administration - NexusMealTracker{% endblock %}
 
 {% block extra_css %}
 <style>
     .admin-hero {
         padding: 3rem 2rem;
-        background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(59, 130, 246, 0.1));
+        background: linear-gradient(135deg, rgba(124, 58, 237, .1), rgba(59, 130, 246, .1));
         border-radius: 2rem;
         border: 1px solid var(--border);
         margin-bottom: 2rem;
         text-align: center;
         position: relative;
-        overflow: hidden;
+        overflow: hidden
     }
 
     .admin-hero::after {
@@ -23,35 +22,35 @@
         transform: translate(-50%, -50%);
         font-size: 12rem;
         font-weight: 900;
-        color: rgba(255, 255, 255, 0.02);
+        color: rgba(255, 255, 255, .02);
         z-index: 0;
-        pointer-events: none;
+        pointer-events: none
     }
 
     .admin-title {
         font-size: 2.8rem;
         font-weight: 800;
-        margin-bottom: 0.5rem;
+        margin-bottom: .5rem;
         background: linear-gradient(90deg, #fff, var(--accent));
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
         position: relative;
-        z-index: 1;
+        z-index: 1
     }
 
     .admin-subtitle {
         font-size: 1.1rem;
         color: var(--muted);
         position: relative;
-        z-index: 1;
+        z-index: 1
     }
 
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 1rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2.5rem
     }
 
     .stat-card {
@@ -59,163 +58,161 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
+        gap: .4rem
     }
 
     .stat-val {
         font-size: 2.5rem;
         font-weight: 800;
         color: #fff;
-        line-height: 1;
+        line-height: 1
     }
 
     .stat-lab {
-        font-size: 0.75rem;
+        font-size: .75rem;
         font-weight: 700;
         text-transform: uppercase;
         color: var(--muted);
-        letter-spacing: 0.1em;
+        letter-spacing: .1em
     }
 
-    /* Section headings */
     .section-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 1rem;
+        margin-bottom: 1rem
     }
 
     .section-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #fff;
+        color: #fff
     }
 
-    /* User table */
     .user-table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: collapse
     }
 
     .user-table th {
-        font-size: 0.7rem;
+        font-size: .7rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: .08em;
         color: var(--muted);
-        padding: 0.75rem 1rem;
+        padding: .75rem 1rem;
         text-align: left;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid var(--border)
     }
 
     .user-table td {
-        padding: 0.9rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        vertical-align: middle;
+        padding: .9rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, .04);
+        vertical-align: middle
     }
 
     .user-table tr:hover td {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, .03)
     }
 
     .user-table tr:last-child td {
-        border-bottom: none;
+        border-bottom: none
     }
 
     .badge {
         display: inline-block;
-        padding: 0.2rem 0.65rem;
+        padding: .2rem .65rem;
         border-radius: 999px;
-        font-size: 0.72rem;
-        font-weight: 700;
+        font-size: .72rem;
+        font-weight: 700
     }
 
     .badge-manager {
-        background: rgba(16, 185, 129, 0.15);
+        background: rgba(16, 185, 129, .15);
         color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        border: 1px solid rgba(16, 185, 129, .3)
     }
 
     .badge-resident {
-        background: rgba(59, 130, 246, 0.15);
+        background: rgba(59, 130, 246, .15);
         color: #60a5fa;
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        border: 1px solid rgba(59, 130, 246, .3)
     }
 
     .badge-active {
-        background: rgba(16, 185, 129, 0.1);
-        color: #34d399;
+        background: rgba(16, 185, 129, .1);
+        color: #34d399
     }
 
     .badge-inactive {
-        background: rgba(239, 68, 68, 0.1);
-        color: #f87171;
+        background: rgba(239, 68, 68, .1);
+        color: #f87171
     }
 
-    /* Buttons */
     .btn-sm {
-        padding: 0.35rem 0.85rem;
-        border-radius: 0.6rem;
-        font-size: 0.78rem;
+        padding: .35rem .85rem;
+        border-radius: .6rem;
+        font-size: .78rem;
         font-weight: 700;
         border: none;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all .2s;
         text-decoration: none;
-        display: inline-block;
+        display: inline-block
     }
 
     .btn-edit {
-        background: rgba(124, 58, 237, 0.2);
+        background: rgba(124, 58, 237, .2);
         color: var(--accent);
-        border: 1px solid rgba(124, 58, 237, 0.3);
+        border: 1px solid rgba(124, 58, 237, .3)
     }
 
     .btn-delete {
-        background: rgba(239, 68, 68, 0.1);
+        background: rgba(239, 68, 68, .1);
         color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        border: 1px solid rgba(239, 68, 68, .3)
     }
 
     .btn-edit:hover {
-        background: rgba(124, 58, 237, 0.35);
+        background: rgba(124, 58, 237, .35)
     }
 
     .btn-delete:hover {
-        background: rgba(239, 68, 68, 0.25);
+        background: rgba(239, 68, 68, .25)
     }
 
     .btn-primary {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: #fff;
         border: none;
-        padding: 0.65rem 1.4rem;
-        border-radius: 0.75rem;
+        padding: .65rem 1.4rem;
+        border-radius: .75rem;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: .9rem;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all .2s;
+        text-decoration: none;
+        display: inline-block
     }
 
     .btn-primary:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
+        opacity: .9;
+        transform: translateY(-1px)
     }
 
-    /* Modal */
     .modal-overlay {
         display: none;
         position: fixed;
         inset: 0;
         z-index: 999;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, .7);
         backdrop-filter: blur(6px);
         align-items: center;
-        justify-content: center;
+        justify-content: center
     }
 
     .modal-overlay.open {
-        display: flex;
+        display: flex
     }
 
     .modal-box {
@@ -225,14 +222,14 @@
         padding: 2.5rem;
         width: 100%;
         max-width: 460px;
-        position: relative;
+        position: relative
     }
 
     .modal-title {
         font-size: 1.4rem;
         font-weight: 800;
         margin-bottom: 1.5rem;
-        color: #fff;
+        color: #fff
     }
 
     .modal-close {
@@ -243,69 +240,69 @@
         border: none;
         color: var(--muted);
         font-size: 1.5rem;
-        cursor: pointer;
+        cursor: pointer
     }
 
     .form-group {
-        margin-bottom: 1.1rem;
+        margin-bottom: 1.1rem
     }
 
     .form-label {
         display: block;
-        font-size: 0.8rem;
+        font-size: .8rem;
         font-weight: 700;
         color: var(--muted);
-        margin-bottom: 0.4rem;
+        margin-bottom: .4rem
     }
 
     .form-input,
     .form-select {
         width: 100%;
-        padding: 0.75rem 1rem;
-        background: rgba(255, 255, 255, 0.05);
+        padding: .75rem 1rem;
+        background: rgba(255, 255, 255, .05);
         border: 1px solid var(--border);
-        border-radius: 0.75rem;
+        border-radius: .75rem;
         color: #fff;
-        font-size: 0.9rem;
+        font-size: .9rem;
         outline: none;
-        transition: border-color 0.2s;
+        transition: border-color .2s
     }
 
     .form-input:focus,
     .form-select:focus {
-        border-color: var(--accent);
+        border-color: var(--accent)
     }
 
     .form-select option {
-        background: #1a1635;
+        background: #1a1635
     }
 
     .form-check {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        font-size: 0.88rem;
-        color: var(--muted);
+        gap: .6rem;
+        font-size: .88rem;
+        color: var(--muted)
     }
 
     .alert {
-        padding: 0.9rem 1.2rem;
-        border-radius: 0.8rem;
+        padding: .9rem 1.2rem;
+        border-radius: .8rem;
         margin-bottom: 1.2rem;
-        font-size: 0.88rem;
-        font-weight: 600;
+        font-size: .88rem;
+        font-weight: 600
     }
 
     .alert-success {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        color: #34d399;
+        background: rgba(16, 185, 129, .1);
+        border: 1px solid rgba(16, 185, 129, .3);
+        color: #34d399
     }
 
     .alert-error {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #f87171;
+        background: rgba(239, 68, 68, .1);
+        border: 1px solid rgba(239, 68, 68, .3);
+        color: #f87171
     }
 </style>
 {% endblock %}
@@ -314,29 +311,45 @@
 
 {% if messages %}
 {% for msg in messages %}
-<div class="alert {% if 'error' in msg.tags or '🚫' in msg.message %}alert-error{% else %}alert-success{% endif %}">{{
-    msg }}</div>
+{% if msg.tags == 'error' %}
+<div class="alert alert-error">{{ msg }}</div>
+{% else %}
+<div class="alert alert-success">{{ msg }}</div>
+{% endif %}
 {% endfor %}
 {% endif %}
 
-<!-- Hero -->
 <div class="admin-hero">
     <h1 class="admin-title">🛡️ ADMIN ONLY Area</h1>
-    <p class="admin-subtitle">System Hub & Master Configuration Oversight</p>
+    <p class="admin-subtitle">System Hub &amp; Master Configuration Oversight</p>
+    <div style="margin-top: 1.5rem; display: flex; justify-content: center; z-index: 2; position: relative;">
+        <form method="POST" style="margin:0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_maintenance">
+            {% if maintenance_mode %}
+            <button type="submit" class="btn-primary"
+                style="background: var(--error); border: 2px solid #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">🔴
+                Maintenance Mode: ON (Click to Disable)</button>
+            {% else %}
+            <button type="submit" class="btn-outline"
+                style="border-color: var(--border); color: var(--text); background: rgba(255,255,255,0.05); backdrop-filter: blur(5px);">⚪
+                Maintenance Mode: OFF (Click to Enable)</button>
+            {% endif %}
+        </form>
+    </div>
 </div>
 
-<!-- Stat Cards -->
 <div class="stats-grid">
     <div class="card stat-card">
         <span class="stat-val">{{ user_count }}</span>
         <span class="stat-lab">Total Accounts</span>
     </div>
     <div class="card stat-card">
-        <span class="stat-val" style="color: var(--success);">{{ manager_count }}</span>
+        <span class="stat-val" style="color:var(--success)">{{ manager_count }}</span>
         <span class="stat-lab">Managers</span>
     </div>
     <div class="card stat-card">
-        <span class="stat-val" style="color: var(--accent);">{{ resident_count }}</span>
+        <span class="stat-val" style="color:var(--accent)">{{ resident_count }}</span>
         <span class="stat-lab">Residents</span>
     </div>
     <div class="card stat-card">
@@ -349,11 +362,10 @@
     </div>
 </div>
 
-<!-- ── Managers Table ── -->
+<!-- Managers Table -->
 <div class="card">
     <div class="section-header">
-        <span class="section-title">🛡️ Managers <span style="color:var(--muted); font-size:0.85rem;">({{ manager_count
-                }})</span></span>
+        <span class="section-title">🛡️ Managers ({{ manager_count }})</span>
         <button class="btn-primary" onclick="openCreate('manager')">+ Add Manager</button>
     </div>
     {% if managers %}
@@ -369,17 +381,15 @@
         <tbody>
             {% for u in managers %}
             <tr>
-                <td style="font-weight:600; color:#fff;">{{ u.username }}</td>
-                <td>
-                    {% if u.is_active %}<span class="badge badge-active">Active</span>
-                    {% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
-                </td>
+                <td style="font-weight:600;color:#fff">{{ u.username }}</td>
+                <td>{% if u.is_active %}<span class="badge badge-active">Active</span>{% else %}<span
+                        class="badge badge-inactive">Inactive</span>{% endif %}</td>
                 <td><span class="badge badge-manager">Manager</span></td>
-                <td style="display:flex; gap:0.5rem;">
+                <td style="display:flex;gap:.5rem">
                     <button class="btn-sm btn-edit"
-                        onclick="openEdit({{ u.id }}, '{{ u.username }}', 'manager', {{ u.is_active|yesno:'true,false' }})">✏️
+                        onclick="openEdit({{ u.id }},'{{ u.username }}','manager',{{ u.is_active|yesno:'true,false' }})">✏️
                         Edit</button>
-                    <button class="btn-sm btn-delete" onclick="openDelete({{ u.id }}, '{{ u.username }}')">🗑️
+                    <button class="btn-sm btn-delete" onclick="openDelete({{ u.id }},'{{ u.username }}')">🗑️
                         Delete</button>
                 </td>
             </tr>
@@ -387,15 +397,14 @@
         </tbody>
     </table>
     {% else %}
-    <p style="color:var(--muted); text-align:center; padding:1rem;">No managers yet. Add one above.</p>
+    <p style="color:var(--muted);text-align:center;padding:1rem">No managers yet. Add one above.</p>
     {% endif %}
 </div>
 
-<!-- ── Residents Table ── -->
+<!-- Residents Table -->
 <div class="card">
     <div class="section-header">
-        <span class="section-title">👤 Residents <span style="color:var(--muted); font-size:0.85rem;">({{ resident_count
-                }})</span></span>
+        <span class="section-title">👤 Residents ({{ resident_count }})</span>
         <button class="btn-primary" onclick="openCreate('resident')">+ Add Resident</button>
     </div>
     {% if residents %}
@@ -411,17 +420,15 @@
         <tbody>
             {% for u in residents %}
             <tr>
-                <td style="font-weight:600; color:#fff;">{{ u.username }}</td>
-                <td>
-                    {% if u.is_active %}<span class="badge badge-active">Active</span>
-                    {% else %}<span class="badge badge-inactive">Inactive</span>{% endif %}
-                </td>
+                <td style="font-weight:600;color:#fff">{{ u.username }}</td>
+                <td>{% if u.is_active %}<span class="badge badge-active">Active</span>{% else %}<span
+                        class="badge badge-inactive">Inactive</span>{% endif %}</td>
                 <td><span class="badge badge-resident">Resident</span></td>
-                <td style="display:flex; gap:0.5rem;">
+                <td style="display:flex;gap:.5rem">
                     <button class="btn-sm btn-edit"
-                        onclick="openEdit({{ u.id }}, '{{ u.username }}', 'resident', {{ u.is_active|yesno:'true,false' }})">✏️
+                        onclick="openEdit({{ u.id }},'{{ u.username }}','resident',{{ u.is_active|yesno:'true,false' }})">✏️
                         Edit</button>
-                    <button class="btn-sm btn-delete" onclick="openDelete({{ u.id }}, '{{ u.username }}')">🗑️
+                    <button class="btn-sm btn-delete" onclick="openDelete({{ u.id }},'{{ u.username }}')">🗑️
                         Delete</button>
                 </td>
             </tr>
@@ -429,16 +436,15 @@
         </tbody>
     </table>
     {% else %}
-    <p style="color:var(--muted); text-align:center; padding:1rem;">No residents registered yet.</p>
+    <p style="color:var(--muted);text-align:center;padding:1rem">No residents registered yet.</p>
     {% endif %}
 </div>
 
-<!-- Quick Links -->
-<div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem;">
-    <a href="/admin/" target="_blank" class="btn-primary" style="text-decoration:none;">⚙️ Django Admin Console</a>
+<div style="margin-bottom:2rem">
+    <a href="/admin/" target="_blank" class="btn-primary">⚙️ Django Admin Console</a>
 </div>
 
-<!-- ── CREATE Modal ── -->
+<!-- CREATE Modal -->
 <div id="createModal" class="modal-overlay">
     <div class="modal-box">
         <button class="modal-close" onclick="closeModal('createModal')">✕</button>
@@ -452,7 +458,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input name="password" type="password" class="form-input" placeholder="Min. 8 characters" required>
+                <input name="password" type="password" class="form-input" placeholder="Min 8 characters" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Role</label>
@@ -461,21 +467,20 @@
                     <option value="manager">Manager</option>
                 </select>
             </div>
-            <button type="submit" class="btn-primary" style="width:100%; margin-top:0.5rem;">Create User</button>
+            <button type="submit" class="btn-primary" style="width:100%;margin-top:.5rem">Create User</button>
         </form>
     </div>
 </div>
 
-<!-- ── EDIT Modal ── -->
+<!-- EDIT Modal -->
 <div id="editModal" class="modal-overlay">
     <div class="modal-box">
         <button class="modal-close" onclick="closeModal('editModal')">✕</button>
-        <h2 class="modal-title">✏️ Edit User: <span id="edit-name" style="color:var(--accent);"></span></h2>
+        <h2 class="modal-title">✏️ Edit: <span id="edit-name" style="color:var(--accent)"></span></h2>
         <form method="POST" id="editForm" action="">
             {% csrf_token %}
             <div class="form-group">
-                <label class="form-label">New Password <span style="font-weight:400;">(leave blank to keep
-                        current)</span></label>
+                <label class="form-label">New Password (leave blank to keep current)</label>
                 <input name="password" type="password" class="form-input" placeholder="New password...">
             </div>
             <div class="form-group">
@@ -490,27 +495,25 @@
                     <input type="checkbox" id="edit-active" name="active"> Account Active
                 </label>
             </div>
-            <button type="submit" class="btn-primary" style="width:100%; margin-top:0.5rem;">Save Changes</button>
+            <button type="submit" class="btn-primary" style="width:100%;margin-top:.5rem">Save Changes</button>
         </form>
     </div>
 </div>
 
-<!-- ── DELETE Confirm Modal ── -->
+<!-- DELETE Confirm Modal -->
 <div id="deleteModal" class="modal-overlay">
-    <div class="modal-box" style="max-width:380px; text-align:center;">
+    <div class="modal-box" style="max-width:380px;text-align:center">
         <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
-        <div style="font-size:3rem; margin-bottom:1rem;">🗑️</div>
+        <div style="font-size:3rem;margin-bottom:1rem">🗑️</div>
         <h2 class="modal-title">Delete User?</h2>
-        <p style="color:var(--muted); margin-bottom:1.5rem;">
-            Are you sure you want to delete <strong id="delete-name" style="color:#f87171;"></strong>?
-            This action cannot be undone.
-        </p>
+        <p style="color:var(--muted);margin-bottom:1.5rem">Are you sure you want to delete <strong id="delete-name"
+                style="color:#f87171"></strong>? This cannot be undone.</p>
         <form method="POST" id="deleteForm" action="">
             {% csrf_token %}
-            <div style="display:flex; gap:0.75rem; justify-content:center;">
+            <div style="display:flex;gap:.75rem;justify-content:center">
                 <button type="button" onclick="closeModal('deleteModal')" class="btn-sm btn-edit"
-                    style="padding:0.6rem 1.4rem;">Cancel</button>
-                <button type="submit" class="btn-sm btn-delete" style="padding:0.6rem 1.4rem;">Yes, Delete</button>
+                    style="padding:.6rem 1.4rem">Cancel</button>
+                <button type="submit" class="btn-sm btn-delete" style="padding:.6rem 1.4rem">Yes, Delete</button>
             </div>
         </form>
     </div>
@@ -520,31 +523,10 @@
 
 {% block extra_js %}
 <script>
-    function openCreate(role) {
-        document.getElementById('create-role').value = role;
-        document.getElementById('create-username').value = '';
-        document.getElementById('createModal').classList.add('open');
-    }
-    function openEdit(id, username, role, isActive) {
-        document.getElementById('edit-name').textContent = username;
-        document.getElementById('edit-role').value = role;
-        document.getElementById('edit-active').checked = isActive;
-        document.getElementById('editForm').action = '/admin/users/' + id + '/edit/';
-        document.getElementById('editModal').classList.add('open');
-    }
-    function openDelete(id, username) {
-        document.getElementById('delete-name').textContent = username;
-        document.getElementById('deleteForm').action = '/admin/users/' + id + '/delete/';
-        document.getElementById('deleteModal').classList.add('open');
-    }
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('open');
-    }
-    // Close on backdrop click
-    document.querySelectorAll('.modal-overlay').forEach(el => {
-        el.addEventListener('click', function (e) {
-            if (e.target === this) closeModal(this.id);
-        });
-    });
+    function openCreate(role) { document.getElementById('create-role').value = role; document.getElementById('create-username').value = ''; document.getElementById('createModal').classList.add('open') }
+    function openEdit(id, username, role, isActive) { document.getElementById('edit-name').textContent = username; document.getElementById('edit-role').value = role; document.getElementById('edit-active').checked = isActive; document.getElementById('editForm').action = '/admin/users/' + id + '/edit/'; document.getElementById('editModal').classList.add('open') }
+    function openDelete(id, username) { document.getElementById('delete-name').textContent = username; document.getElementById('deleteForm').action = '/admin/users/' + id + '/delete/'; document.getElementById('deleteModal').classList.add('open') }
+    function closeModal(id) { document.getElementById(id).classList.remove('open') }
+    document.querySelectorAll('.modal-overlay').forEach(el => { el.addEventListener('click', function (e) { if (e.target === this) closeModal(this.id) }) });
 </script>
 {% endblock %}

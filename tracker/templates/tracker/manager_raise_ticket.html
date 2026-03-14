@@ -1,0 +1,93 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Raise Ticket - NexusMealTracker Care{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <h1 class="heading-xl">🎟️ Raise Support Ticket</h1>
+    <p class="subtext">Contact the system administrators for issues or assistance.</p>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div
+    style="padding:1rem; border-radius:1rem; margin-bottom:2rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); font-weight:600; {% if message.tags == 'success' %}color: var(--success);{% else %}color: var(--error);{% endif %}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text);">Open a New Ticket</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div style="margin-bottom: 1rem;">
+            <label
+                style="display:block; margin-bottom:0.5rem; font-weight:700; color:var(--muted); font-size:0.85rem; text-transform:uppercase;">Subject</label>
+            <input type="text" name="subject" required
+                style="width:100%; padding:0.75rem 1rem; border-radius:0.5rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); font-size:1rem; outline:none;">
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label
+                style="display:block; margin-bottom:0.5rem; font-weight:700; color:var(--muted); font-size:0.85rem; text-transform:uppercase;">Message</label>
+            <textarea name="message" rows="5" required
+                style="width:100%; padding:0.75rem 1rem; border-radius:0.5rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); font-size:1rem; outline:none; resize:vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn-primary"
+            style="padding: 0.75rem 1.5rem; font-size: 1rem; border-radius: 0.5rem;">Submit Ticket</button>
+    </form>
+</div>
+
+<div class="card" style="padding: 1.5rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text);">My Tickets</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th
+                        style="text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Date</th>
+                    <th
+                        style="text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Subject</th>
+                    <th
+                        style="text-align: center; padding: 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border);">
+                        Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td
+                        style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--muted);">
+                        {{ ticket.created_at|date:"d M Y H:i" }}</td>
+                    <td
+                        style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text);">
+                        {{ ticket.subject }}
+                        <div style="font-size: 0.8rem; color: var(--muted); font-weight: 400; margin-top: 0.25rem;">
+                            {{ ticket.message }}
+                        </div>
+                    </td>
+                    <td style="padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); text-align: center;">
+                        {% if ticket.is_resolved %}
+                        <span
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);">✅
+                            Resolved</span>
+                        {% else %}
+                        <span
+                            style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2);">⏳
+                            Open</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 3rem; color: var(--muted);">No tickets raised
+                        yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
